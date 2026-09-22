@@ -214,9 +214,6 @@ button, summary { -webkit-tap-highlight-color: transparent; }
 .step-grid i { display: grid; place-items: center; border-radius: 100%; background: var(--green-700); color: white; width: 31px; height: 31px; font-style: normal; font-weight: 800; }
 .step-grid h3 { margin: 14px 0 8px; }
 .empty { max-width: 580px; }
-.golden-thread { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 18px; margin: 28px 0; border-radius: 18px; background: var(--green-950); color: white; }
-.golden-thread span { font-size: 12px; font-weight: 800; }
-.golden-thread b { color: var(--lime); }
 .record-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
 .record-grid article { min-height: 190px; border: 1px solid var(--line); border-radius: 22px; background: white; padding: 24px; }
 .record-grid a { text-decoration: none; }
@@ -292,7 +289,6 @@ button, summary { -webkit-tap-highlight-color: transparent; }
 .record-attachment button { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; padding: 0; border: 0; background: transparent; color: var(--green-800); cursor: pointer; font: inherit; font-size: 11px; font-weight: 800; }
 .record-route { padding: 0 20px; }
 .record-route summary { padding: 18px 0; }
-.record-route .golden-thread { margin: 0 0 20px; }
 .add-child-panel { padding: 0; }
 .add-child-panel summary { min-height: 78px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; list-style: none; }
 .add-child-panel summary::-webkit-details-marker { display: none; }
@@ -777,7 +773,6 @@ button, summary { -webkit-tap-highlight-color: transparent; }
   .workspace-header > .button { min-height: 46px; white-space: nowrap; }
   .add-child-panel .form-row { grid-template-columns: 1fr; }
   .add-child-panel .form-row > .button { width: 100%; min-height: 46px; }
-  .golden-thread { font-size: 12px; }
   .notice { align-items: flex-start; flex-direction: column; }
   .demo-banner { flex-direction: column; align-items: flex-start; }
   .demo-banner a { margin-left: 0; }
