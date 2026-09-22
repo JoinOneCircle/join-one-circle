@@ -73,6 +73,12 @@ drop policy if exists "users can read their own AI conversations" on public.ai_c
 drop policy if exists "users can create their own AI conversations" on public.ai_conversations;
 drop policy if exists "users can read messages in their AI conversations" on public.ai_messages;
 drop policy if exists "users can add messages to their AI conversations" on public.ai_messages;
+-- A previous interrupted execution may already have created the hardened
+-- policies. Drop both generations so this migration is safe to run again.
+drop policy if exists "AI-authorised users can read their own conversations" on public.ai_conversations;
+drop policy if exists "AI-authorised users can create their own conversations" on public.ai_conversations;
+drop policy if exists "AI-authorised users can read messages in their conversations" on public.ai_messages;
+drop policy if exists "AI-authorised users can add messages to their conversations" on public.ai_messages;
 create policy "AI-authorised users can read their own conversations" on public.ai_conversations for select
   using (user_id = auth.uid() and public.can_access_area(child_id, 'ai', 'read'));
 create policy "AI-authorised users can create their own conversations" on public.ai_conversations for insert
