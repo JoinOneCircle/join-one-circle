@@ -478,7 +478,18 @@ button, summary { -webkit-tap-highlight-color: transparent; }
 .settings-row > div { min-width: 0; }
 .settings-row > div > strong, .settings-row > div > small { display: block; }
 .settings-row > div > small { margin-top: 5px; }
-.settings-row--password { grid-template-columns: minmax(96px, .7fr) minmax(0, 1.3fr) auto; align-items: start; }
+.settings-row--password {
+  grid-template-columns: minmax(104px, .65fr) minmax(0, 1fr);
+  grid-template-areas:
+    "label description"
+    ". action";
+  column-gap: 18px;
+  row-gap: 8px;
+  align-items: start;
+}
+.settings-row--password > span { grid-area: label; align-self: start; }
+.settings-row--password > div { grid-area: description; }
+.settings-row--password > a { grid-area: action; justify-self: start; line-height: 1.35; }
 .settings-language select { min-width: 150px; border: 1px solid var(--line); border-radius: 10px; background: white; color: var(--ink); padding: 10px 12px; }
 .inline-edit { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: end; margin: 18px 0; }
 .mobile-bottom-nav { display: none; }
@@ -820,6 +831,8 @@ button, summary { -webkit-tap-highlight-color: transparent; }
   .settings-grid { grid-template-columns: 1fr; }
   .settings-row { grid-template-columns: 1fr auto; }
   .settings-row span { grid-column: 1/-1; }
+  .settings-row--password { grid-template-columns: 1fr; grid-template-areas: "label" "description" "action"; }
+  .settings-row--password > span { grid-column: auto; }
   .inline-edit { grid-template-columns: 1fr; }
   .quick-create { grid-template-columns: 1fr; }
   .record-editor .quick-create, .record-admin .form-row { grid-template-columns: 1fr; }
