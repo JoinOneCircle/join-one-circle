@@ -475,6 +475,10 @@ button, summary { -webkit-tap-highlight-color: transparent; }
 .settings-row span { color: var(--muted); }
 .settings-row button, .settings-row a { border: 0; background: transparent; color: var(--green-700); font-weight: 800; cursor: pointer; text-decoration: none; }
 .settings-row small { color: var(--muted); line-height: 1.4; }
+.settings-row > div { min-width: 0; }
+.settings-row > div > strong, .settings-row > div > small { display: block; }
+.settings-row > div > small { margin-top: 5px; }
+.settings-row--password { grid-template-columns: minmax(96px, .7fr) minmax(0, 1.3fr) auto; align-items: start; }
 .settings-language select { min-width: 150px; border: 1px solid var(--line); border-radius: 10px; background: white; color: var(--ink); padding: 10px 12px; }
 .inline-edit { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: end; margin: 18px 0; }
 .mobile-bottom-nav { display: none; }
