@@ -154,6 +154,14 @@ button, summary { -webkit-tap-highlight-color: transparent; }
 .auth-resend .quiet-button { min-height: 39px; flex: 0 0 auto; white-space: nowrap; padding: 8px 13px; font-size: 12px; }
 .checkbox-field { display: flex; align-items: flex-start; gap: 10px; color: var(--muted); font-size: 12px; line-height: 1.45; }
 .checkbox-field input { margin-top: 2px; }
+.invite-access-summary { display: flex; gap: 12px; align-items: flex-start; margin: 24px 0; padding: 15px; border: 1px solid #d7e7d4; border-radius: 15px; background: #f5faf3; color: var(--green-800); }
+.invite-access-summary > svg { flex: 0 0 auto; margin-top: 1px; }
+.invite-access-summary div { display: grid; gap: 3px; }
+.invite-access-summary strong { font-size: 13px; }
+.invite-access-summary span { color: var(--muted); font-size: 12px; line-height: 1.45; }
+.invite-accept-form { margin-top: 22px; }
+.auth-card > .invite-access-summary + .form-message { margin-top: -8px; margin-bottom: 18px; }
+.auth-card .auth-footnote { margin: 25px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
 
 /* Onboarding */
 .onboarding-shell { min-height: 100vh; background: linear-gradient(135deg,#fbfcf8 40%,#e9f1e4); }

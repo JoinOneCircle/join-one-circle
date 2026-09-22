@@ -684,6 +684,11 @@ Object.assign(uiTranslations.pt, {
   "Copy invitation link": "Copiar link do convite",
   "Link copied": "Link copiado",
   "Done": "Concluído",
+  "You have been invited to a secure child circle.": "Você foi convidado para um círculo seguro da criança.",
+  "The family controls exactly what is shared. Nothing else becomes visible when you accept.": "A família controla exatamente o que é compartilhado. Nada além disso fica visível quando você aceita.",
+  "Your secure invitation is ready.": "Seu convite seguro está pronto.",
+  "Private, limited access": "Acesso privado e limitado",
+  "You will be taken straight to an area you are authorised to use.": "Você será levado diretamente a uma área que tem autorização para usar.",
 });
 
 Object.assign(uiTranslations.es, {
@@ -711,6 +716,11 @@ Object.assign(uiTranslations.es, {
   "Copy invitation link": "Copiar enlace de invitación",
   "Link copied": "Enlace copiado",
   "Done": "Listo",
+  "You have been invited to a secure child circle.": "Te han invitado a un círculo seguro del niño/a.",
+  "The family controls exactly what is shared. Nothing else becomes visible when you accept.": "La familia controla exactamente lo que se comparte. Nada más será visible cuando aceptes.",
+  "Your secure invitation is ready.": "Tu invitación segura está lista.",
+  "Private, limited access": "Acceso privado y limitado",
+  "You will be taken straight to an area you are authorised to use.": "Irás directamente a un área que tienes autorización para usar.",
 });
 
 export function translateUi(language: SupportedLanguage, source: string): string {
