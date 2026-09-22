@@ -33,6 +33,15 @@ export async function proxy(request: NextRequest) {
   if (data.user && (request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/signup")) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
+  if (data.user && request.nextUrl.pathname !== "/mfa") {
+    const { data: assurance } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (assurance.currentLevel === "aal1" && assurance.nextLevel === "aal2") {
+      const mfaUrl = request.nextUrl.clone();
+      mfaUrl.pathname = "/mfa";
+      mfaUrl.searchParams.set("next", request.nextUrl.pathname);
+      return NextResponse.redirect(mfaUrl);
+    }
+  }
   return response;
 }
 

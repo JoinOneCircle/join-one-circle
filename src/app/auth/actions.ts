@@ -26,7 +26,7 @@ export async function signIn(formData: FormData) {
     authRedirect("/login", "error", "Confirm your email first. Open the secure link we sent when you created your account.");
   }
   if (error) authRedirect("/login", "error", "We could not sign you in. Check your email and password and try again.");
-  redirect(next);
+  redirect(`/mfa?next=${encodeURIComponent(next)}`);
 }
 
 export async function signUp(formData: FormData) {
