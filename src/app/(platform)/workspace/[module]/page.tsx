@@ -69,7 +69,7 @@ export default async function WorkspaceModule({ params, searchParams }: { params
     const workspaceReady = ((memberships ?? []) as unknown as OrganisationMembership[]).some((membership) => organisationCanUseModule(membership, moduleId));
     return <>
       <header className="workspace-header"><div><p className="eyebrow">{view.eyebrow}</p><h1>{view.title}</h1><p>{view.intro}</p></div><Link className="profile" href="/dashboard">Dashboard</Link></header>
-      <InstitutionalWorkspace moduleId={moduleId as InstitutionalModule} title={view.title} icon={view.icon} childList={liveChildren} items={liveItems} canContribute={liveChildren.some((child) => child.can_contribute)} workspaceReady={workspaceReady} userId={auth.user.id} error={query.error} message={query.message} />
+      <InstitutionalWorkspace moduleId={moduleId as InstitutionalModule} title={view.title} icon={view.icon} childList={liveChildren} sharedChildren={context.children.map((child) => ({ id: child.id, preferred_name: child.preferred_name, can_contribute: false, can_open_record: child.can_open_record ?? true }))} items={liveItems} canContribute={liveChildren.some((child) => child.can_contribute)} workspaceReady={workspaceReady} userId={auth.user.id} error={query.error} message={query.message} />
     </>;
   }
   if (moduleId === "send-register" || moduleId === "plans") {

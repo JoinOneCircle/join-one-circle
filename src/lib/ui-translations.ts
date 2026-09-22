@@ -727,6 +727,30 @@ Object.assign(uiTranslations.es, {
   "This invitation is not available. It may have expired, been used already or belong to a different email address.": "Esta invitación no está disponible. Es posible que haya caducado, ya se haya usado o pertenezca a otro correo electrónico.",
 });
 
+Object.assign(uiTranslations.pt, {
+  "AUTHORISED CHILDREN": "CRIANÇAS AUTORIZADAS",
+  "Children available to you": "Crianças disponíveis para você",
+  "Open a child to see the information shared with your account. This stays available even while your organisation is being verified.": "Abra uma criança para ver as informações compartilhadas com sua conta. Isso continua disponível enquanto sua organização é verificada.",
+  "Open authorised record": "Abrir registro autorizado",
+  "Profile access is required to open this record": "É necessário acesso ao perfil para abrir este registro",
+  "No child has been shared with this account yet. When an invitation is accepted, the child will appear here.": "Nenhuma criança foi compartilhada com esta conta ainda. Quando um convite for aceito, a criança aparecerá aqui.",
+  "Organisation verification is pending": "A verificação da organização está pendente",
+  "Directly shared child records are available above. School-wide coordination tools activate after organisation verification.": "Os registros de crianças compartilhados diretamente estão disponíveis acima. As ferramentas de coordenação escolar são ativadas após a verificação da organização.",
+  "Organisation verification is needed only for shared operational lists and school-wide updates. It does not remove a child record shared directly with you: use the child list above to open it.": "A verificação da organização é necessária apenas para listas operacionais compartilhadas e atualizações em toda a escola. Ela não remove um registro de criança compartilhado diretamente com você: use a lista acima para abri-lo."
+});
+
+Object.assign(uiTranslations.es, {
+  "AUTHORISED CHILDREN": "NIÑOS/AS AUTORIZADOS/AS",
+  "Children available to you": "Niños/as disponibles para ti",
+  "Open a child to see the information shared with your account. This stays available even while your organisation is being verified.": "Abre un niño/a para ver la información compartida con tu cuenta. Esto sigue disponible mientras se verifica tu organización.",
+  "Open authorised record": "Abrir registro autorizado",
+  "Profile access is required to open this record": "Se requiere acceso al perfil para abrir este registro",
+  "No child has been shared with this account yet. When an invitation is accepted, the child will appear here.": "Aún no se ha compartido ningún niño/a con esta cuenta. Cuando se acepte una invitación, aparecerá aquí.",
+  "Organisation verification is pending": "La verificación de la organización está pendiente",
+  "Directly shared child records are available above. School-wide coordination tools activate after organisation verification.": "Los registros de niños/as compartidos directamente están disponibles arriba. Las herramientas de coordinación escolar se activan tras verificar la organización.",
+  "Organisation verification is needed only for shared operational lists and school-wide updates. It does not remove a child record shared directly with you: use the child list above to open it.": "La verificación de la organización solo es necesaria para listas operativas compartidas y actualizaciones de toda la escuela. No elimina un registro de niño/a compartido directamente contigo: usa la lista de arriba para abrirlo."
+});
+
 export function translateUi(language: SupportedLanguage, source: string): string {
   if (language === "en") return source;
   const exact = uiTranslations[language][source];

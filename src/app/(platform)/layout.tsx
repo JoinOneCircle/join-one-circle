@@ -21,7 +21,6 @@ const navigation: Record<ViewerRole, NavItem[]> = {
     { icon: "provision", label: "Provision", href: "/workspace/provision" }, { icon: "reviews", label: "Reviews", href: "/workspace/reviews" },
     { icon: "documents", label: "Import pupils", href: "/data-import" },
     { icon: "documents", label: "Documents", href: "/documents" }, { icon: "ai", label: "Circle AI", href: "/circle-ai" },
-    { icon: "reports", label: "Reports", href: "/workspace/reports" }, { icon: "team", label: "Team", href: "/workspace/team" },
   ],
   professional: [
     { icon: "today", label: "Today", href: "/dashboard" }, { icon: "caseload", label: "Caseload", href: "/workspace/caseload" },

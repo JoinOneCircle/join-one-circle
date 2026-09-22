@@ -22,6 +22,7 @@ type Props = {
   title: string;
   icon: AppIconName;
   childList: InstitutionalChild[];
+  sharedChildren: InstitutionalChild[];
   items: InstitutionalWorkspaceItem[];
   canContribute: boolean;
   workspaceReady: boolean;
@@ -40,16 +41,29 @@ const moduleVerb: Record<Props["moduleId"], string> = {
   caseload: "Add caseload item", requests: "Add request", cases: "Add case", consultations: "Add consultation", deadlines: "Add deadline", decisions: "Record decision", audit: "Add audit note",
 };
 
-export function InstitutionalWorkspace({ moduleId, title, icon, childList, items, canContribute, workspaceReady, userId, error, message }: Props) {
+export function InstitutionalWorkspace({ moduleId, title, icon, childList, sharedChildren, items, canContribute, workspaceReady, userId, error, message }: Props) {
   const activeCount = items.filter((item) => !["complete", "cancelled"].includes(item.status)).length;
   const childName = new Map(childList.map((child) => [child.id, child.preferred_name]));
   const contributableChildren = childList.filter((child) => child.can_contribute);
+  const availableChildren = [...childList, ...sharedChildren].reduce<InstitutionalChild[]>((all, child) => {
+    const existing = all.find((item) => item.id === child.id);
+    if (existing) {
+      existing.can_contribute ||= child.can_contribute;
+      existing.can_open_record ||= child.can_open_record;
+      if (existing.preferred_name === "Authorised child" && child.preferred_name !== "Authorised child") existing.preferred_name = child.preferred_name;
+    } else all.push({ ...child });
+    return all;
+  }, []);
   const areaDescription = moduleId === "send-register" ? "SEND needs" : moduleId === "plans" ? "outcomes" : moduleId === "caseload" || moduleId === "requests" ? "evidence" : moduleId === "provision" ? "provision" : moduleId === "reviews" || moduleId === "decisions" || moduleId === "audit" ? "reviews" : moduleId === "deadlines" || moduleId === "team" ? "actions" : moduleId === "reports" ? "progress" : "EHCP information";
 
   return <>
+    <section className="shared-children-panel" aria-labelledby="available-children-title">
+      <div><p className="eyebrow">AUTHORISED CHILDREN</p><h2 id="available-children-title">Children available to you</h2><p>Open a child to see the information shared with your account. This stays available even while your organisation is being verified.</p></div>
+      {availableChildren.length ? <div className="shared-children-list">{availableChildren.map((child) => child.can_open_record ? <Link className="shared-child-link" href={`/children/${child.id}`} key={child.id}><span className="shared-child-icon"><AppIcon name="children" size={20} /></span><span><strong>{child.preferred_name}</strong><small>Open authorised record</small></span><span aria-hidden="true">→</span></Link> : <div className="shared-child-link shared-child-link--locked" key={child.id}><span className="shared-child-icon"><AppIcon name="children" size={20} /></span><span><strong>{child.preferred_name}</strong><small>Profile access is required to open this record</small></span></div>)}</div> : <p className="shared-children-empty">No child has been shared with this account yet. When an invitation is accepted, the child will appear here.</p>}
+    </section>
     <section className="school-workspace-summary">
       <span className="school-summary-icon"><AppIcon name={icon} size={24} /></span>
-      <div><strong>{activeCount ? `${activeCount} active ${activeCount === 1 ? "item" : "items"}` : "No active items"}</strong><p>Only children and {areaDescription} shared with your verified organisation appear here.</p></div>
+      <div><strong>{workspaceReady ? activeCount ? `${activeCount} active ${activeCount === 1 ? "item" : "items"}` : "No active items" : "Organisation verification is pending"}</strong><p>{workspaceReady ? `Only children and ${areaDescription} shared with your verified organisation appear here.` : "Directly shared child records are available above. School-wide coordination tools activate after organisation verification."}</p></div>
       {canContribute && contributableChildren.length > 0 && <a className="button button--small" href="#add-workspace-item">{moduleVerb[moduleId]}</a>}
     </section>
     {error && <p className="form-message form-message--error" role="alert">{error}</p>}
@@ -68,7 +82,7 @@ export function InstitutionalWorkspace({ moduleId, title, icon, childList, items
       </form>
     </section>}
 
-    {!workspaceReady && <section className="empty-filter" aria-live="polite">Your organisation is awaiting verification. This workspace will show authorised records only after verification is complete.</section>}
+    {!workspaceReady && <section className="empty-filter" aria-live="polite">Organisation verification is needed only for shared operational lists and school-wide updates. It does not remove a child record shared directly with you: use the child list above to open it.</section>}
     {workspaceReady && !canContribute && <section className="empty-filter" aria-live="polite">Your access is read-only. Ask the child’s access administrator if you need permission to add or update {moduleNoun[moduleId]}s.</section>}
     {canContribute && !contributableChildren.length && <section className="empty-filter" aria-live="polite">No child record with contribution permission has been shared with this verified organisation yet.</section>}
 
