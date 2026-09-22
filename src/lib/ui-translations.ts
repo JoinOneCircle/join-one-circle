@@ -679,6 +679,11 @@ Object.assign(uiTranslations.pt, {
   "Download update": "Baixar atualização",
   "Download attachment": "Baixar anexo",
   "will be removed. This cannot be undone.": "será removida. Esta ação não pode ser desfeita.",
+  "Invitation created": "Convite criado",
+  "Copy this single-use link and share it only with the person you invited.": "Copie este link de uso único e compartilhe-o somente com a pessoa convidada.",
+  "Copy invitation link": "Copiar link do convite",
+  "Link copied": "Link copiado",
+  "Done": "Concluído",
 });
 
 Object.assign(uiTranslations.es, {
@@ -701,6 +706,11 @@ Object.assign(uiTranslations.es, {
   "Download update": "Descargar actualización",
   "Download attachment": "Descargar adjunto",
   "will be removed. This cannot be undone.": "se eliminará. Esta acción no se puede deshacer.",
+  "Invitation created": "Invitación creada",
+  "Copy this single-use link and share it only with the person you invited.": "Copia este enlace de un solo uso y compártelo solo con la persona invitada.",
+  "Copy invitation link": "Copiar enlace de invitación",
+  "Link copied": "Enlace copiado",
+  "Done": "Listo",
 });
 
 export function translateUi(language: SupportedLanguage, source: string): string {
