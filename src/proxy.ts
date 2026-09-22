@@ -35,7 +35,7 @@ export async function proxy(request: NextRequest) {
   }
   if (data.user && request.nextUrl.pathname !== "/mfa") {
     const { data: assurance } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (assurance.currentLevel === "aal1" && assurance.nextLevel === "aal2") {
+    if (assurance?.currentLevel === "aal1" && assurance.nextLevel === "aal2") {
       const mfaUrl = request.nextUrl.clone();
       mfaUrl.pathname = "/mfa";
       mfaUrl.searchParams.set("next", request.nextUrl.pathname);

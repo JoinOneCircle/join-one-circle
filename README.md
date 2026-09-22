@@ -12,11 +12,11 @@ Nova plataforma SEND, construída de forma independente do Little Steps.
 ## Como iniciar
 
 1. Criar o projeto Supabase na conta da cliente.
-2. Executar `supabase/0001_foundation.sql` no SQL Editor.
+2. Executar, em ordem, todas as migrations em `supabase/0001_foundation.sql` até `supabase/0012_persistent_ai_rate_limits.sql` no SQL Editor.
 3. Copiar `.env.example` para `.env.local` e preencher as chaves públicas do Supabase.
 4. Executar `npm install` e `npm run dev`.
 
-O esquema inicial não cria dados reais de crianças. Antes de produção, é obrigatório configurar MFA, SMTP próprio, backups, domínio, políticas operacionais, DPIA e teste de segurança independente.
+O esquema não cria dados reais de crianças. Antes de produção, é obrigatório configurar o domínio e URLs de redirecionamento, SMTP próprio, backups, políticas operacionais, DPIA e teste de segurança independente. A MFA por aplicativo autenticador já está disponível para cada conta; a política de exigência para a equipa deve ser definida pela organização.
 
 ## Demonstração local
 

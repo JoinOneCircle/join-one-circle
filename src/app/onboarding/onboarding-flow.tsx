@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppIcon, type AppIconName } from "@/components/app-icon";
-import { completeOrganisationOnboarding, createFirstCircle } from "./actions";
+import { completeOrganisationOnboarding, createFirstCircle, requestLocalAuthorityActivation } from "./actions";
 import { demoId, updateDemoState } from "@/lib/demo-store";
 
 type Role = "family" | "school" | "professional" | "local_authority";
@@ -15,7 +15,7 @@ const roles: { id: Role; icon: AppIconName; title: string; copy: string }[] = [
   { id: "local_authority", icon: "decisions", title: "Local Authority", copy: "Review cases, consultations and statutory decisions." },
 ];
 
-export function OnboardingFlow({ error, demo = false, initialRole }: { error?: string; demo?: boolean; initialRole?: Role }) {
+export function OnboardingFlow({ error, message, demo = false, initialRole }: { error?: string; message?: string; demo?: boolean; initialRole?: Role }) {
   const [role, setRole] = useState<Role | null>(initialRole ?? null);
   const [demoError, setDemoError] = useState("");
   const router = useRouter();
@@ -39,6 +39,7 @@ export function OnboardingFlow({ error, demo = false, initialRole }: { error?: s
     <h2>How will you use Join One Circle?</h2>
     <p>Choose the workspace that matches your responsibilities. You can join other circles later through an invitation.</p>
     {(error || demoError) && <div className="form-alert" role="alert">{error || demoError}</div>}
+    {message && <div className="form-message" role="status">{message}</div>}
     <div className="role-choice-grid" role="list" aria-label="Choose your role">
       {roles.map((item) => <button className="role-choice" data-selected={role === item.id} type="button" onClick={() => setRole(item.id)} key={item.id}>
         <span><AppIcon name={item.icon} size={25} /></span>
@@ -56,11 +57,13 @@ export function OnboardingFlow({ error, demo = false, initialRole }: { error?: s
       <button className="button auth-submit" type="submit">Create the secure circle <span className="link-chevron" aria-hidden="true">›</span></button>
     </form>}
 
-    {role === "local_authority" && !demo ? <section className="auth-form onboarding-role-form onboarding-verification" aria-live="polite">
+    {role === "local_authority" && !demo ? <form className="auth-form onboarding-role-form onboarding-verification" action={requestLocalAuthorityActivation} aria-live="polite">
       <div className="form-section-heading"><h3>Local Authority verification</h3><p>To protect child records, Local Authority workspaces are activated only after the organisation and authorised contact have been verified.</p></div>
-      <p className="notice"><b>What happens next</b><span>Use a verified work contact to request activation. The workspace will not open until the organisation has been checked.</span></p>
+      <p className="notice"><b>What happens next</b><span>Your request is recorded securely. The workspace will not open until the organisation and authorised contact have been checked.</span></p>
+      <label className="field">Local Authority name<input name="organisation_name" required maxLength={160} /></label>
+      <button className="button auth-submit" type="submit">Request verification <span className="link-chevron" aria-hidden="true">›</span></button>
       <button className="quiet-button" type="button" onClick={() => setRole(null)}>Choose another role</button>
-    </section> : role && role !== "family" && <form className="auth-form onboarding-role-form" action={completeOrganisationOnboarding} onSubmit={() => rememberRole(role)}>
+    </form> : role && role !== "family" && <form className="auth-form onboarding-role-form" action={completeOrganisationOnboarding} onSubmit={() => rememberRole(role)}>
       <input type="hidden" name="role" value={role} />
       <div className="form-section-heading"><h3>{role === "school" ? "Set up the school workspace" : role === "professional" ? "Set up your professional workspace" : "Set up the Local Authority workspace"}</h3><p>Start with the organisation. Children only appear after authorised access is created or accepted.</p></div>
       <label className="field">Organisation name<input name="organisation_name" required /></label>

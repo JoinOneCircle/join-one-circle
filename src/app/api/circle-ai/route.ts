@@ -7,15 +7,6 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const requestBuckets = new Map<string, { count: number; resetAt: number }>();
-function withinRateLimit(key: string) {
-  const now = Date.now();
-  const bucket = requestBuckets.get(key);
-  if (!bucket || bucket.resetAt < now) { requestBuckets.set(key, { count: 1, resetAt: now + 60_000 }); return true; }
-  if (bucket.count >= 10) return false;
-  bucket.count += 1; return true;
-}
-
 type SafeMessage = { role: "user" | "assistant"; content: string };
 function cleanMessages(value: unknown): SafeMessage[] {
   if (!Array.isArray(value)) return [];
@@ -76,7 +67,11 @@ export async function POST(request: Request) {
     const { data: authData } = await supabase!.auth.getUser();
     if (!authData.user) return NextResponse.json({ ok: false, error: "authentication-required" }, { status: 401 });
     userId = authData.user.id;
-    if (!withinRateLimit(userId)) return NextResponse.json({ ok: false, error: "rate-limited" }, { status: 429, headers: { "Retry-After": "60" } });
+    const { data: rateAllowed, error: rateError } = await supabase!.rpc("consume_ai_request_slot", { p_max_requests: 10 });
+    if (rateError || rateAllowed !== true) {
+      if (rateError) console.error("[circle-ai] rate limit unavailable", rateError.code);
+      return NextResponse.json({ ok: false, error: rateError ? "service-unavailable" : "rate-limited" }, { status: rateError ? 503 : 429, headers: rateError ? undefined : { "Retry-After": "60" } });
+    }
     const { data: membership } = await supabase!.from("child_circle_memberships").select("role,status,is_access_admin,permissions").eq("child_id", childId).eq("user_id", userId).maybeSingle();
     if (!canUseAi(membership as Membership | null)) return NextResponse.json({ ok: false, error: "not-authorised" }, { status: 403 });
     const viewerRole = membership!.role;

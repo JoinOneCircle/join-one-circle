@@ -4,6 +4,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createAction, deleteAction, updateActionStatus } from "./actions";
 import { DemoActions } from "./demo-actions";
+import { ConfirmDeleteForm } from "@/components/confirm-delete-form";
 
 const labels: Record<string, string> = { open: "Open", in_progress: "In progress", waiting: "Waiting", complete: "Completed", cancelled: "Cancelled" };
 
@@ -19,6 +20,7 @@ export default async function ActionsPage({ searchParams }: { searchParams: Prom
     actions = data ?? [];
   }
   const childrenById = new Map(context.children.map((child) => [child.id, child.preferred_name]));
+  const recordChildIds = new Set(context.children.filter((child) => child.can_open_record !== false).map((child) => child.id));
   const visible = actions.filter((action) => action.status === filter);
   return <>
     <header className="workspace-header"><div><p className="eyebrow">COORDINATED ACTIONS</p><h1>Actions</h1><p>Every action is attached to an authorised child record. Status changes are saved.</p></div></header>
@@ -33,6 +35,6 @@ export default async function ActionsPage({ searchParams }: { searchParams: Prom
     </form>
     {!context.children.length && <p className="empty-filter">Add or join a child record before creating an action.</p>}
     <section className="panel filters" aria-label="Action status filters">{Object.entries(labels).map(([key, label]) => <Link className={filter === key ? "filter-active" : ""} href={`/actions?filter=${key}`} key={key}>{label} <b>{actions.filter((item) => item.status === key).length}</b></Link>)}</section>
-    <section className="panel task-table"><div className="task-row task-header"><span>Action</span><span>Child</span><span>Due</span><span>Status</span><span>Manage</span></div>{visible.length ? visible.map((item) => <article className="task-row" key={item.id}><span><b>{item.title}</b>{item.description && <small>{item.description}</small>}</span><span>{childrenById.get(item.child_id) ?? "Authorised child"}</span><span>{item.due_at ? new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(item.due_at)) : "No date"}</span><span><i>{labels[item.status] ?? item.status}</i></span><span className="task-controls"><Link href={`/children/${item.child_id}?area=action`}>Open</Link><form action={updateActionStatus}><input type="hidden" name="action_id" value={item.id} /><input type="hidden" name="child_id" value={item.child_id} /><input type="hidden" name="status" value={item.status === "complete" ? "open" : "complete"} /><button type="submit">{item.status === "complete" ? "Reopen" : "Complete"}</button></form><form action={deleteAction}><input type="hidden" name="action_id" value={item.id} /><input type="hidden" name="child_id" value={item.child_id} /><button className="danger-button" type="submit">Delete</button></form></span></article>) : <div className="empty-filter">No actions in this view.</div>}</section>
+    <section className="panel task-table"><div className="task-row task-header"><span>Action</span><span>Child</span><span>Due</span><span>Status</span><span>Manage</span></div>{visible.length ? visible.map((item) => <article className="task-row" key={item.id}><span><b>{item.title}</b>{item.description && <small>{item.description}</small>}</span><span>{childrenById.get(item.child_id) ?? "Authorised child"}</span><span>{item.due_at ? new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(item.due_at)) : "No date"}</span><span><i>{labels[item.status] ?? item.status}</i></span><span className="task-controls">{recordChildIds.has(item.child_id) ? <Link href={`/children/${item.child_id}?area=action`}>Open record</Link> : <span className="field-hint">Authorised action</span>}<form action={updateActionStatus}><input type="hidden" name="action_id" value={item.id} /><input type="hidden" name="child_id" value={item.child_id} /><input type="hidden" name="status" value={item.status === "complete" ? "open" : "complete"} /><button type="submit">{item.status === "complete" ? "Reopen" : "Complete"}</button></form><ConfirmDeleteForm action={deleteAction} values={{ action_id: item.id, child_id: item.child_id }} itemName={item.title} itemType="action" /></span></article>) : <div className="empty-filter">No actions in this view.</div>}</section>
   </>;
 }

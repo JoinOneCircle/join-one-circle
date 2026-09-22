@@ -15,7 +15,7 @@ export function MfaChallenge({ next }: { next: string }) {
     const client = createSupabaseBrowserClient();
     if (!client) { router.replace("/login?error=Secure+authentication+is+not+configured"); return; }
     void client.auth.mfa.getAuthenticatorAssuranceLevel().then(async ({ data }) => {
-      if (data.currentLevel === "aal2" || data.nextLevel !== "aal2") { router.replace(next); return; }
+      if (!data || data.currentLevel === "aal2" || data.nextLevel !== "aal2") { router.replace(next); return; }
       const { data: factors, error: factorsError } = await client.auth.mfa.listFactors();
       const verified = factors?.totp.find((factor) => factor.status === "verified");
       if (factorsError || !verified) setError("Your authenticator could not be found. Sign in again or contact support.");

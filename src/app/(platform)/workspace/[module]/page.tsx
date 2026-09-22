@@ -2,8 +2,10 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { type AppIconName } from "@/components/app-icon";
 import { getPlatformContext, type ViewerRole } from "@/lib/platform-data";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { WorkspaceModuleClient } from "./workspace-module-client";
 import { SchoolWorkspaceClient, type SchoolWorkspaceItem } from "./school-workspace-client";
+import { InstitutionalWorkspace, type InstitutionalChild, type InstitutionalModule, type InstitutionalWorkspaceItem } from "./institutional-workspace";
 
 type Module = { icon: AppIconName; eyebrow: string; title: string; intro: string; cta: string; rows: [string, string, string][] };
 const modules: Record<string, Module> = {
@@ -23,8 +25,14 @@ const modules: Record<string, Module> = {
   audit: { icon: "audit", eyebrow: "SECURITY", title: "Audit history", intro: "A clear record of access, contributions, approvals and sharing events.", cta: "Export audit", rows: [["09:42", "Document viewed", "JOC-1048"], ["09:18", "Permission changed", "JOC-1039"], ["Yesterday", "Decision approved", "JOC-1027"]] },
 };
 
-export default async function WorkspaceModule({ params }: { params: Promise<{ module: string }> }) {
+const persistentModules = new Set<InstitutionalModule>([
+  "send-register", "plans", "ehcp-tracker", "provision", "reviews", "reports", "team",
+  "caseload", "requests", "cases", "consultations", "deadlines", "decisions", "audit",
+]);
+
+export default async function WorkspaceModule({ params, searchParams }: { params: Promise<{ module: string }>; searchParams: Promise<{ error?: string; message?: string }> }) {
   const { module: moduleId } = await params;
+  const query = await searchParams;
   const view = modules[moduleId];
   if (!view) notFound();
   const context = await getPlatformContext();
@@ -34,18 +42,22 @@ export default async function WorkspaceModule({ params }: { params: Promise<{ mo
     reports: ["school", "local_authority"], audit: ["local_authority"],
   };
   if (!allowedRoles[moduleId]?.includes(context.role)) redirect("/dashboard");
-  // These organisation workspaces do not yet have a persistent, tenant-scoped
-  // data model. Never present sample rows or browser-only edits as live child
-  // information in a signed-in production account.
-  if (!context.demo) {
+  // The core operational workspaces are backed by tenant-scoped Supabase rows.
+  // Demo keeps its isolated browser experience, while a live account never
+  // falls back to static names or localStorage.
+  if (!context.demo && persistentModules.has(moduleId as InstitutionalModule)) {
+    const supabase = await createSupabaseServerClient();
+    const { data: auth } = await supabase!.auth.getUser();
+    if (!auth.user) redirect(`/login?next=/workspace/${moduleId}`);
+    const [{ data: children }, { data: items }] = await Promise.all([
+      supabase!.rpc("list_workspace_children", { p_module: moduleId }),
+      supabase!.from("institutional_workspace_items").select("id, child_id, title, summary, due_on, status, created_by, linked_record_item_id").eq("workspace_module", moduleId).order("due_on", { ascending: true, nullsFirst: false }).order("created_at", { ascending: false }),
+    ]);
+    const liveChildren = (children ?? []) as InstitutionalChild[];
+    const liveItems = (items ?? []) as InstitutionalWorkspaceItem[];
     return <>
       <header className="workspace-header"><div><p className="eyebrow">{view.eyebrow}</p><h1>{view.title}</h1><p>{view.intro}</p></div><Link className="profile" href="/dashboard">Dashboard</Link></header>
-      <section className="empty-state workspace-live-state" aria-labelledby="workspace-live-title">
-        <p className="eyebrow">AUTHORISATION REQUIRED</p>
-        <h2 id="workspace-live-title">This workspace is being connected to authorised records</h2>
-        <p>Only verified, permissioned information can appear here. No child information can be added or stored in this area until that connection is complete.</p>
-        <Link className="button button-primary" href="/dashboard">Return to dashboard</Link>
-      </section>
+      <InstitutionalWorkspace moduleId={moduleId as InstitutionalModule} title={view.title} icon={view.icon} childList={liveChildren} items={liveItems} canContribute={liveChildren.some((child) => child.can_contribute)} userId={auth.user.id} error={query.error} message={query.message} />
     </>;
   }
   if (moduleId === "send-register" || moduleId === "plans") {

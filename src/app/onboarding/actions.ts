@@ -55,3 +55,15 @@ export async function completeOrganisationOnboarding(formData: FormData) {
   if (error) redirect(`/onboarding?error=${encodeURIComponent(error.message)}`);
   redirect("/dashboard");
 }
+
+export async function requestLocalAuthorityActivation(formData: FormData) {
+  const organisationName = value(formData, "organisation_name");
+  if (!organisationName) redirect(`/onboarding?error=${encodeURIComponent("Enter the Local Authority name.")}`);
+  if (!isSupabaseConfigured) redirect("/?error=configuration-required");
+  const supabase = await createSupabaseServerClient();
+  const { data: authData } = await supabase!.auth.getUser();
+  if (!authData.user) redirect("/login");
+  const { error } = await supabase!.rpc("request_local_authority_activation", { p_organisation_name: organisationName });
+  if (error) redirect(`/onboarding?error=${encodeURIComponent("We could not save this verification request. Please try again.")}`);
+  redirect(`/onboarding?message=${encodeURIComponent("Your Local Authority verification request has been received. We will activate the workspace after the organisation is verified.")}`);
+}
