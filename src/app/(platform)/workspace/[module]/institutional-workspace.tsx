@@ -23,6 +23,7 @@ type Props = {
   childList: InstitutionalChild[];
   items: InstitutionalWorkspaceItem[];
   canContribute: boolean;
+  workspaceReady: boolean;
   userId: string;
   error?: string;
   message?: string;
@@ -43,7 +44,7 @@ function dueLabel(value: string | null) {
   return new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(`${value}T12:00:00`));
 }
 
-export function InstitutionalWorkspace({ moduleId, title, icon, childList, items, canContribute, userId, error, message }: Props) {
+export function InstitutionalWorkspace({ moduleId, title, icon, childList, items, canContribute, workspaceReady, userId, error, message }: Props) {
   const activeCount = items.filter((item) => !["complete", "cancelled"].includes(item.status)).length;
   const childName = new Map(childList.map((child) => [child.id, child.preferred_name]));
   const contributableChildren = childList.filter((child) => child.can_contribute);
@@ -71,7 +72,8 @@ export function InstitutionalWorkspace({ moduleId, title, icon, childList, items
       </form>
     </section>}
 
-    {!canContribute && <section className="empty-filter" aria-live="polite">Your access is read-only. Ask the child’s access administrator if you need permission to add or update {moduleNoun[moduleId]}s.</section>}
+    {!workspaceReady && <section className="empty-filter" aria-live="polite">Your organisation is awaiting verification. This workspace will show authorised records only after verification is complete.</section>}
+    {workspaceReady && !canContribute && <section className="empty-filter" aria-live="polite">Your access is read-only. Ask the child’s access administrator if you need permission to add or update {moduleNoun[moduleId]}s.</section>}
     {canContribute && !contributableChildren.length && <section className="empty-filter" aria-live="polite">No child record with contribution permission has been shared with this verified organisation yet.</section>}
 
     <section className="panel module-list institutional-list" aria-label={`${title} list`}>

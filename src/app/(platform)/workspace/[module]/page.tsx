@@ -8,6 +8,7 @@ import { SchoolWorkspaceClient, type SchoolWorkspaceItem } from "./school-worksp
 import { InstitutionalWorkspace, type InstitutionalChild, type InstitutionalModule, type InstitutionalWorkspaceItem } from "./institutional-workspace";
 
 type Module = { icon: AppIconName; eyebrow: string; title: string; intro: string; cta: string; rows: [string, string, string][] };
+type OrganisationMembership = { role: string; membership_status: string; organisations: { organisation_type: string; verification_status: string } | null };
 const modules: Record<string, Module> = {
   "send-register": { icon: "register", eyebrow: "SCHOOL", title: "SEND register", intro: "A whole-school view of needs, support level, goals and current risk.", cta: "Add pupil", rows: [["Alex Morgan", "EHCP · Communication", "Review due"], ["Maya Patel", "SEN support · Cognition", "On track"], ["Sam Jones", "Monitoring · SEMH", "Action needed"]] },
   plans: { icon: "plans", eyebrow: "ASSESS · PLAN · DO · REVIEW", title: "Plans and APDR", intro: "Keep needs, outcomes, provision, delivery evidence and reviews connected.", cta: "Create plan", rows: [["Alex Morgan", "Autumn support plan", "Review due"], ["Maya Patel", "Spring APDR cycle", "In progress"], ["Sam Jones", "Initial assessment", "Draft"]] },
@@ -30,6 +31,15 @@ const persistentModules = new Set<InstitutionalModule>([
   "caseload", "requests", "cases", "consultations", "deadlines", "decisions", "audit",
 ]);
 
+function organisationCanUseModule(membership: OrganisationMembership, moduleId: string) {
+  const organisation = membership.organisations;
+  if (membership.membership_status !== "active" || organisation?.verification_status !== "verified") return false;
+  if (["send-register", "plans", "ehcp-tracker", "provision", "reviews", "team"].includes(moduleId)) return organisation.organisation_type === "school";
+  if (moduleId === "reports") return ["school", "local_authority"].includes(organisation.organisation_type);
+  if (["caseload", "requests"].includes(moduleId)) return organisation.organisation_type === "professional_practice";
+  return organisation.organisation_type === "local_authority";
+}
+
 export default async function WorkspaceModule({ params, searchParams }: { params: Promise<{ module: string }>; searchParams: Promise<{ error?: string; message?: string }> }) {
   const { module: moduleId } = await params;
   const query = await searchParams;
@@ -49,15 +59,17 @@ export default async function WorkspaceModule({ params, searchParams }: { params
     const supabase = await createSupabaseServerClient();
     const { data: auth } = await supabase!.auth.getUser();
     if (!auth.user) redirect(`/login?next=/workspace/${moduleId}`);
-    const [{ data: children }, { data: items }] = await Promise.all([
+    const [{ data: children }, { data: items }, { data: memberships }] = await Promise.all([
       supabase!.rpc("list_workspace_children", { p_module: moduleId }),
       supabase!.from("institutional_workspace_items").select("id, child_id, title, summary, due_on, status, created_by, linked_record_item_id").eq("workspace_module", moduleId).order("due_on", { ascending: true, nullsFirst: false }).order("created_at", { ascending: false }),
+      supabase!.from("organisation_memberships").select("role, membership_status, organisations(organisation_type, verification_status)").eq("user_id", auth.user.id),
     ]);
     const liveChildren = (children ?? []) as InstitutionalChild[];
     const liveItems = (items ?? []) as InstitutionalWorkspaceItem[];
+    const workspaceReady = ((memberships ?? []) as unknown as OrganisationMembership[]).some((membership) => organisationCanUseModule(membership, moduleId));
     return <>
       <header className="workspace-header"><div><p className="eyebrow">{view.eyebrow}</p><h1>{view.title}</h1><p>{view.intro}</p></div><Link className="profile" href="/dashboard">Dashboard</Link></header>
-      <InstitutionalWorkspace moduleId={moduleId as InstitutionalModule} title={view.title} icon={view.icon} childList={liveChildren} items={liveItems} canContribute={liveChildren.some((child) => child.can_contribute)} userId={auth.user.id} error={query.error} message={query.message} />
+      <InstitutionalWorkspace moduleId={moduleId as InstitutionalModule} title={view.title} icon={view.icon} childList={liveChildren} items={liveItems} canContribute={liveChildren.some((child) => child.can_contribute)} workspaceReady={workspaceReady} userId={auth.user.id} error={query.error} message={query.message} />
     </>;
   }
   if (moduleId === "send-register" || moduleId === "plans") {
