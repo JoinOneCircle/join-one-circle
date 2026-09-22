@@ -11,7 +11,7 @@ export async function acceptInvitation(formData: FormData) {
   const { data: authData } = await supabase!.auth.getUser();
   if (!authData.user) redirect(`/login?next=${encodeURIComponent(`/invite/${token}`)}`);
   const { data: childId, error } = await supabase!.rpc("accept_child_invitation", { p_token: token });
-  if (error || !childId) redirect(`/invite/${token}?error=${encodeURIComponent(error?.message ?? "invitation-failed")}`);
+  if (error || !childId) redirect(`/invite/${token}?error=invitation-not-available`);
   // A professional can be invited to only Documents, Evidence or Actions.
   // Sending them straight to the child profile requires Passport access and
   // makes a valid invitation look as though it did nothing. Send each person

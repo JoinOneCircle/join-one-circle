@@ -326,10 +326,10 @@ begin
   if caller_id is null then raise exception 'Authentication is required'; end if;
   select lower(email) into caller_email from auth.users where id = caller_id;
   select * into invitation from public.child_invitations
-    where token_hash = encode(digest(p_token, 'sha256'), 'hex')
+    where token_hash = encode(extensions.digest(p_token, 'sha256'), 'hex')
       and status = 'pending' and expires_at > now() for update;
   if invitation.id is null then raise exception 'This invitation is invalid, expired or no longer available'; end if;
-  if invitation.email_hash <> encode(digest(caller_email, 'sha256'), 'hex') then raise exception 'This invitation belongs to a different email address'; end if;
+  if invitation.email_hash <> encode(extensions.digest(caller_email, 'sha256'), 'hex') then raise exception 'This invitation belongs to a different email address'; end if;
   insert into public.profiles(id, display_name)
   values (caller_id, coalesce(nullif(trim((select raw_user_meta_data ->> 'display_name' from auth.users where id = caller_id)), ''), split_part(caller_email, '@', 1)))
   on conflict (id) do nothing;

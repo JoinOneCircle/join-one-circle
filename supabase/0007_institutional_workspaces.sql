@@ -218,10 +218,10 @@ begin
   if caller_id is null then raise exception 'Authentication is required'; end if;
   select lower(email) into caller_email from auth.users where id = caller_id;
   select * into invitation from public.child_invitations
-    where token_hash = encode(digest(p_token, 'sha256'), 'hex')
+    where token_hash = encode(extensions.digest(p_token, 'sha256'), 'hex')
       and status = 'pending' and expires_at > now() for update;
   if invitation.id is null then raise exception 'This invitation is invalid, expired or no longer available'; end if;
-  if invitation.email_hash <> encode(digest(caller_email, 'sha256'), 'hex') then raise exception 'This invitation belongs to a different email address'; end if;
+  if invitation.email_hash <> encode(extensions.digest(caller_email, 'sha256'), 'hex') then raise exception 'This invitation belongs to a different email address'; end if;
 
   expected_type := case when invitation.role in ('senco', 'school_staff') then 'school'
                         when invitation.role = 'professional' then 'professional_practice'
