@@ -80,6 +80,16 @@ export const uiTranslations: Record<Exclude<SupportedLanguage, "en">, Table> = {
 // Live-workflow language strings live here rather than in the React views so
 // a language change updates newly-rendered, authenticated screens as well.
 Object.assign(uiTranslations.pt, {
+  "Shared children": "Crianças compartilhadas",
+  "Open a shared child": "Abra uma criança compartilhada",
+  "Start with the child record. Your available tools and information follow the permissions granted to you.": "Comece pelo registro da criança. Suas ferramentas e informações disponíveis seguem as permissões concedidas a você.",
+  "View shared children": "Ver crianças compartilhadas",
+  "SHARED CHILDREN": "CRIANÇAS COMPARTILHADAS",
+  "These are the only child records available to this account.": "Estes são os únicos registros de crianças disponíveis para esta conta.",
+  "No child has been shared with this account yet.": "Nenhuma criança foi compartilhada com esta conta ainda.",
+  "Read-only access": "Acesso somente leitura",
+  "You can read this part of the record, but you have not been given permission to add or change information here.": "Você pode ler esta parte do registro, mas não recebeu permissão para adicionar ou alterar informações aqui.",
+  "Any attached file is sent to the family record for review.": "Qualquer arquivo anexado é enviado ao registro da família para revisão.",
   "Document type": "Tipo de documento", "Assessment or report": "Avaliação ou relatório", "Plan": "Plano", "Letter": "Carta", "Evidence": "Evidência", "Other": "Outro", "No file selected": "Nenhum ficheiro selecionado", "Preview": "Visualizar",
   "View record": "Ver registo", "Change status": "Alterar status",
   "Every action is attached to an authorised child record. Status changes are saved.": "Cada ação fica ligada a um registro autorizado da criança. As alterações de status são salvas.",
@@ -90,6 +100,16 @@ Object.assign(uiTranslations.pt, {
   , "AUTHORISED CIRCLE": "CÍRCULO AUTORIZADO", "People with access": "Pessoas com acesso", "Choose a role": "Escolha uma função", "Record areas": "Áreas do registro", "Can contribute documents": "Pode adicionar documentos", "Can contribute evidence": "Pode adicionar evidências", "Create secure invitation": "Criar convite seguro", "Creating…": "Criando…", "No authorised members are available to show.": "Não há membros autorizados para mostrar.", "Circle administrator": "Administrador do círculo", "No record areas": "Nenhuma área do registro", "Authorised person": "Pessoa autorizada", "Invitation created. Share this single-use link only with the intended person.": "Convite criado. Compartilhe este link de uso único somente com a pessoa convidada."
 });
 Object.assign(uiTranslations.es, {
+  "Shared children": "Niños/as compartidos/as",
+  "Open a shared child": "Abre un niño/a compartido/a",
+  "Start with the child record. Your available tools and information follow the permissions granted to you.": "Empieza por el registro del niño/a. Tus herramientas e información disponibles siguen los permisos que se te han concedido.",
+  "View shared children": "Ver niños/as compartidos/as",
+  "SHARED CHILDREN": "NIÑOS/AS COMPARTIDOS/AS",
+  "These are the only child records available to this account.": "Estos son los únicos registros de niños/as disponibles para esta cuenta.",
+  "No child has been shared with this account yet.": "Aún no se ha compartido ningún niño/a con esta cuenta.",
+  "Read-only access": "Acceso de solo lectura",
+  "You can read this part of the record, but you have not been given permission to add or change information here.": "Puedes leer esta parte del registro, pero no tienes permiso para añadir o cambiar información aquí.",
+  "Any attached file is sent to the family record for review.": "Cualquier archivo adjunto se envía al registro de la familia para su revisión.",
   "Document type": "Tipo de documento", "Assessment or report": "Evaluación o informe", "Plan": "Plan", "Letter": "Carta", "Evidence": "Evidencia", "Other": "Otro", "No file selected": "Ningún archivo seleccionado", "Preview": "Vista previa",
   "View record": "Ver registro", "Change status": "Cambiar estado",
   "Every action is attached to an authorised child record. Status changes are saved.": "Cada acción se vincula a un registro autorizado del niño. Los cambios de estado se guardan.",

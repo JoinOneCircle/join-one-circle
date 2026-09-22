@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
-const sharedTables = ["child_record_items", "child_documents", "child_actions", "child_circle_memberships"] as const;
+const sharedTables = ["children", "child_record_items", "child_documents", "child_actions", "child_circle_memberships", "institutional_workspace_items"] as const;
 
 /** Refreshes an open authorised workspace when another circle member changes
  * a shared record. RLS still decides which events and data the browser gets. */

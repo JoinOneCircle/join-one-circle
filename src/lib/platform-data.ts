@@ -5,6 +5,7 @@ import { createSupabaseServerClient } from "./supabase/server";
 
 export type ChildSummary = { id: string; preferred_name: string; date_of_birth: string | null; can_open_record?: boolean };
 export type ViewerRole = "family" | "school" | "professional" | "local_authority";
+export type ChildAccess = { canManage: boolean; readAreas: string[]; contributeAreas: string[] };
 
 function normaliseRole(role?: string | null, organisationType?: string | null): ViewerRole {
   if (role === "local_authority" || organisationType === "local_authority") return "local_authority";
@@ -68,15 +69,26 @@ export async function getChildRecord(childId: string) {
         { id: "demo-need", record_area: "need", title: "Communication and transition support", updated_at: new Date().toISOString() },
         { id: "demo-outcome", record_area: "outcome", title: "Feel prepared for classroom transitions", updated_at: new Date().toISOString() },
       ],
+      access: { canManage: true, readAreas: [], contributeAreas: [] } satisfies ChildAccess,
     };
   }
   const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase!.auth.getUser();
   if (!authData.user) redirect("/login");
-  const [{ data: child }, { data: items }] = await Promise.all([
+  const [{ data: child }, { data: items }, { data: membership }] = await Promise.all([
     supabase!.from("children").select("id, preferred_name, date_of_birth").eq("id", childId).maybeSingle(),
     supabase!.from("child_record_items").select("id, record_area, title, body, updated_at").eq("child_id", childId).order("updated_at", { ascending: false }),
+    supabase!.from("child_circle_memberships").select("is_access_admin, permissions").eq("child_id", childId).eq("user_id", authData.user.id).in("status", ["active", "limited"]).maybeSingle(),
   ]);
   if (!child) redirect("/dashboard");
-  return { child, items: items ?? [] };
+  const permissions = membership?.permissions as { read_areas?: unknown; contribute_areas?: unknown } | null;
+  return {
+    child,
+    items: items ?? [],
+    access: {
+      canManage: Boolean(membership?.is_access_admin),
+      readAreas: Array.isArray(permissions?.read_areas) ? permissions.read_areas.filter((area): area is string => typeof area === "string") : [],
+      contributeAreas: Array.isArray(permissions?.contribute_areas) ? permissions.contribute_areas.filter((area): area is string => typeof area === "string") : [],
+    } satisfies ChildAccess,
+  };
 }
