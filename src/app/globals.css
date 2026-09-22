@@ -413,9 +413,9 @@ button, summary { -webkit-tap-highlight-color: transparent; }
 .ai-suggestions { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 22px 14px; }
 .ai-suggestions button { border: 1px solid var(--line); border-radius: 100px; background: white; color: var(--green-800); padding: 9px 12px; cursor: pointer; font-size: 12px; font-weight: 700; }
 .ai-composer { display: flex; gap: 10px; padding: 16px 20px; border-top: 1px solid var(--line); }
-.ai-composer .ai-demo-child { display: grid; flex: 0 0 150px; align-content: center; gap: 5px; color: var(--muted); font-size: 10px; font-weight: 800; }
-.ai-composer .ai-demo-child select { width: 100%; min-height: 52px; border: 1px solid var(--line); border-radius: 14px; background: #fff; color: var(--ink); padding: 0 10px; font: inherit; font-size: 13px; font-weight: 700; }
-.ai-composer .ai-demo-child select:focus { outline: 3px solid rgba(47,123,80,.12); border-color: var(--green-700); }
+.ai-composer .ai-child-select { display: grid; flex: 0 0 170px; align-content: center; gap: 5px; color: var(--muted); font-size: 10px; font-weight: 800; }
+.ai-composer .ai-child-select select { width: 100%; min-height: 52px; border: 1px solid var(--line); border-radius: 14px; background: #fff; color: var(--ink); padding: 0 10px; font: inherit; font-size: 13px; font-weight: 700; }
+.ai-composer .ai-child-select select:focus { outline: 3px solid rgba(47,123,80,.12); border-color: var(--green-700); }
 .ai-composer textarea { flex: 1; min-height: 52px; max-height: 150px; resize: vertical; border: 1px solid var(--line); border-radius: 17px; padding: 14px 16px; outline: none; }
 .ai-composer textarea:focus { border-color: var(--green-700); box-shadow: 0 0 0 3px rgba(47,123,80,.1); }
 .ai-composer button { width: 52px; height: 52px; border: 0; border-radius: 50%; background: var(--green-800); color: white; cursor: pointer; font-size: 23px; }
@@ -810,8 +810,8 @@ button, summary { -webkit-tap-highlight-color: transparent; }
   .ai-suggestions { padding: 0 14px 12px; flex-wrap: nowrap; overflow-x: auto; }
   .ai-suggestions button { flex: 0 0 auto; }
   .ai-composer { padding: 12px; flex-wrap: wrap; }
-  .ai-composer .ai-demo-child { flex: 1 1 100%; }
-  .ai-composer .ai-demo-child select { min-height: 44px; }
+  .ai-composer .ai-child-select { flex: 1 1 100%; }
+  .ai-composer .ai-child-select select { min-height: 44px; }
   .invite-form { grid-template-columns: 1fr; }
   .people-list article { grid-template-columns: auto 1fr auto; }
   .people-list article > div:nth-child(3) { grid-column: 2; }

@@ -30,7 +30,7 @@ function demoReply(locale: "en" | "pt" | "es", childName: string, recordCount: n
   return `For ${childName}, I found ${recordCount} point(s) in the record that can help organise the next step.\n\nA helpful sequence could be:\n• add a short note in Needs or Passport;\n• create an action with an owner and due date;\n• save the relevant document.\n\nWould you like me to turn this into an action list?`;
 }
 
-export function CircleAiChat({ childId, childName, viewerRole, demo = false }: { childId: string; childName: string; viewerRole: ViewerRole; demo?: boolean }) {
+export function CircleAiChat({ childId, childName, childOptions, viewerRole, demo = false }: { childId: string; childName: string; childOptions: { id: string; preferred_name: string }[]; viewerRole: ViewerRole; demo?: boolean }) {
   const demoState = useDemoState();
   const [locale, setLocale] = useState<"en" | "pt" | "es">("en");
   const [messages, setMessages] = useState<Message[]>([{ role: "assistant", text: opening.en }]);
@@ -39,6 +39,7 @@ export function CircleAiChat({ childId, childName, viewerRole, demo = false }: {
   const [configured, setConfigured] = useState<boolean | null>(() => demo ? true : null);
   const [error, setError] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [selectedLiveChildId, setSelectedLiveChildId] = useState(childId);
   const [selectedDemoChildId, setSelectedDemoChildId] = useState(childId);
   // Restore the browser choice once. Previously this effect kept reading an
   // older saved value while the next effect wrote the current one, so the
@@ -46,8 +47,9 @@ export function CircleAiChat({ childId, childName, viewerRole, demo = false }: {
   const [demoChildPreferenceRestored, setDemoChildPreferenceRestored] = useState(!demo);
   const listRef = useRef<HTMLDivElement>(null);
   const selectedDemoChild = demoState.children.find((child) => child.id === selectedDemoChildId) ?? demoState.children[0];
-  const activeChildId = demo && selectedDemoChild ? selectedDemoChild.id : childId;
-  const activeChildName = demo && selectedDemoChild ? selectedDemoChild.preferred_name : childName;
+  const selectedLiveChild = childOptions.find((child) => child.id === selectedLiveChildId) ?? childOptions.find((child) => child.id === childId);
+  const activeChildId = demo && selectedDemoChild ? selectedDemoChild.id : selectedLiveChild?.id ?? childId;
+  const activeChildName = demo && selectedDemoChild ? selectedDemoChild.preferred_name : selectedLiveChild?.preferred_name ?? childName;
 
   useEffect(() => {
     const saved = localStorage.getItem("join-one-circle-language");
@@ -60,10 +62,14 @@ export function CircleAiChat({ childId, childName, viewerRole, demo = false }: {
     };
     window.addEventListener("join-one-circle-language-change", syncLanguage);
     if (!demo) {
-      fetch(`/api/circle-ai?childId=${encodeURIComponent(childId)}`, { cache: "no-store" })
+      let cancelled = false;
+      setConversationId(null);
+      setMessages([{ role: "assistant", text: opening[next] }]);
+      fetch(`/api/circle-ai?childId=${encodeURIComponent(activeChildId)}`, { cache: "no-store" })
         .then(async (response) => ({ response, data: await response.json() }))
         .then(({ response, data }) => {
           if (!response.ok) throw new Error(data.error || "history-unavailable");
+          if (cancelled) return;
           setConfigured(Boolean(data.configured));
           const latest = Array.isArray(data.conversations) ? data.conversations[0] : null;
           const savedMessages = Array.isArray(latest?.ai_messages)
@@ -77,10 +83,18 @@ export function CircleAiChat({ childId, childName, viewerRole, demo = false }: {
             setMessages([{ role: "assistant", text: opening[next] }, ...savedMessages]);
           }
         })
-        .catch(() => setConfigured(false));
+        .catch(() => { if (!cancelled) setConfigured(false); });
+      return () => { cancelled = true; window.clearTimeout(timer); window.removeEventListener("join-one-circle-language-change", syncLanguage); };
     }
     return () => { window.clearTimeout(timer); window.removeEventListener("join-one-circle-language-change", syncLanguage); };
-  }, [demo, childId]);
+  }, [demo, activeChildId]);
+
+  useEffect(() => {
+    if (demo) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("child", activeChildId);
+    window.history.replaceState(null, "", url);
+  }, [activeChildId, demo]);
 
   useEffect(() => {
     if (!demo || demoChildPreferenceRestored) return;
@@ -140,7 +154,7 @@ export function CircleAiChat({ childId, childName, viewerRole, demo = false }: {
     <div className="ai-chat" id="conversation-history" ref={listRef}>{messages.map((message,index) => <div className={`chat-message chat-message--${message.role}`} key={`${message.role}-${index}`}><span>{message.role === "assistant" ? "AI" : locale === "pt" ? "Você" : locale === "es" ? "Tú" : "You"}</span><MessageContent text={message.text} /></div>)}{loading && <div className="chat-message"><span>AI</span><div className="ai-thinking" aria-label="Circle AI is thinking"><i/><i/><i/></div></div>}</div>
     {messages.length === 1 && <div className="ai-suggestions">{suggestions.map((suggestion) => <button type="button" onClick={() => setInput(suggestion)} key={suggestion}>{suggestion}</button>)}</div>}
     {error && <div className="form-alert ai-error" role="alert">{error}</div>}
-    <form className="ai-composer" onSubmit={send}>{demo && <label className="field ai-demo-child">Child<select value={selectedDemoChild?.id ?? ""} onChange={(event) => setSelectedDemoChildId(event.target.value)}>{demoState.children.map((child) => <option data-no-translate key={child.id} value={child.id}>{child.preferred_name}</option>)}</select></label>}<label className="sr-only" htmlFor="circle-ai-message">Message Circle AI</label><textarea id="circle-ai-message" value={input} onChange={(event) => setInput(event.target.value)} placeholder={locale === "pt" ? "Conte o que está acontecendo…" : locale === "es" ? "Cuéntanos qué está pasando…" : "Tell us what is happening…"} /><button type="submit" disabled={loading || configured === false || (demo && !selectedDemoChild)} aria-label="Send message"><AppIcon name="send" size={20} /></button></form>
+    <form className="ai-composer" onSubmit={send}>{demo ? <label className="field ai-child-select">Child<select value={selectedDemoChild?.id ?? ""} onChange={(event) => setSelectedDemoChildId(event.target.value)} disabled={loading}>{demoState.children.map((child) => <option data-no-translate key={child.id} value={child.id}>{child.preferred_name}</option>)}</select></label> : childOptions.length > 1 && <label className="field ai-child-select">Child<select value={activeChildId} onChange={(event) => setSelectedLiveChildId(event.target.value)} disabled={loading}>{childOptions.map((child) => <option data-no-translate key={child.id} value={child.id}>{child.preferred_name}</option>)}</select></label>}<label className="sr-only" htmlFor="circle-ai-message">Message Circle AI</label><textarea id="circle-ai-message" value={input} onChange={(event) => setInput(event.target.value)} placeholder={locale === "pt" ? "Conte o que está acontecendo…" : locale === "es" ? "Cuéntanos qué está pasando…" : "Tell us what is happening…"} /><button type="submit" disabled={loading || configured === false || (demo && !selectedDemoChild)} aria-label="Send message"><AppIcon name="send" size={20} /></button></form>
     <small className="ai-disclaimer">This is guidance, not legal advice. AI can make mistakes. Check important information. Nothing is sent automatically.</small>
   </div>;
 }
