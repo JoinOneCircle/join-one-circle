@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     template: "%s | Join One Circle",
   },
   description: "A secure SEND platform connecting families, schools, professionals and Local Authorities around one authorised child record.",
-  icons: { icon: "/logo-icon.png", apple: "/logo-icon.png" },
+  icons: { icon: "/favicon.png", apple: "/favicon.png" },
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
