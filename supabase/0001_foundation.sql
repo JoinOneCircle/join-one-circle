@@ -109,9 +109,14 @@ create policy "authorised users can read child audit events" on public.audit_eve
 create or replace function public.audit_record_item_change()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
+  if tg_op = 'DELETE' then
+    insert into public.audit_events(actor_id, child_id, event_type, entity_type, entity_id)
+    values (auth.uid(), old.child_id, tg_op, 'child_record_item', old.id);
+    return old;
+  end if;
   insert into public.audit_events(actor_id, child_id, event_type, entity_type, entity_id)
-  values (auth.uid(), coalesce(new.child_id, old.child_id), tg_op, 'child_record_item', coalesce(new.id, old.id));
-  return coalesce(new, old);
+  values (auth.uid(), new.child_id, tg_op, 'child_record_item', new.id);
+  return new;
 end;
 $$;
 
