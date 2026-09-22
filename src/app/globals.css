@@ -376,6 +376,7 @@ button, summary { -webkit-tap-highlight-color: transparent; }
 .invite-link-dialog code { display: block; overflow-wrap: anywhere; margin-top: 18px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: #f5f8f3; color: var(--ink); font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
 .invite-link-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
 .invite-link-dialog-actions .button { display: inline-flex; align-items: center; gap: 7px; }
+.invite-required-context { margin: 0 0 12px; color: var(--muted); font-size: 12px; line-height: 1.45; }
 .danger-confirm { min-height: 42px; padding: 0 16px; border: 1px solid #a23931; border-radius: 100px; background: #a23931; color: white; font-weight: 800; cursor: pointer; }
 .danger-confirm:hover { background: #852f29; }
 .document-list article form { margin: 0; }

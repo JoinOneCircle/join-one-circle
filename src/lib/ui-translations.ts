@@ -689,6 +689,7 @@ Object.assign(uiTranslations.pt, {
   "Your secure invitation is ready.": "Seu convite seguro está pronto.",
   "Private, limited access": "Acesso privado e limitado",
   "You will be taken straight to an area you are authorised to use.": "Você será levado diretamente a uma área que tem autorização para usar.",
+  "Basic child profile is always included, so the invited person can identify the record safely.": "O perfil básico da criança é sempre incluído para que a pessoa convidada identifique o registro com segurança.",
   "This invitation is not available. It may have expired, been used already or belong to a different email address.": "Este convite não está disponível. Pode ter expirado, já ter sido usado ou pertencer a outro endereço de e-mail.",
 });
 
@@ -722,6 +723,7 @@ Object.assign(uiTranslations.es, {
   "Your secure invitation is ready.": "Tu invitación segura está lista.",
   "Private, limited access": "Acceso privado y limitado",
   "You will be taken straight to an area you are authorised to use.": "Irás directamente a un área que tienes autorización para usar.",
+  "Basic child profile is always included, so the invited person can identify the record safely.": "El perfil básico del niño/a siempre se incluye para que la persona invitada pueda identificar el registro de forma segura.",
   "This invitation is not available. It may have expired, been used already or belong to a different email address.": "Esta invitación no está disponible. Es posible que haya caducado, ya se haya usado o pertenezca a otro correo electrónico.",
 });
 

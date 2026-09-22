@@ -12,7 +12,10 @@ const readableAreas = new Set(["passport", "need", "outcome", "provision", "deli
 export async function invitePerson(_: InviteState, formData: FormData): Promise<InviteState> {
   if (!isSupabaseConfigured) return { error: "Connect Supabase before inviting people." };
   const childId = value(formData, "child_id"); const email = value(formData, "email"); const role = value(formData, "role");
-  const readAreas = formData.getAll("read_areas").map(String).filter((area) => readableAreas.has(area));
+  // The recipient always receives the child profile as the minimum context
+  // needed to use an authorised document, review or action responsibly.
+  const requestedReadAreas = formData.getAll("read_areas").map(String).filter((area) => readableAreas.has(area));
+  const readAreas = [...new Set(["passport", ...requestedReadAreas])];
   const contributeAreas = formData.getAll("contribute_areas").map(String).filter((area) => readAreas.includes(area));
   if (!childId || !email || !["senco", "school_staff", "professional", "local_authority"].includes(role) || !readAreas.length) return { error: "Choose a child, a professional role and at least one area to share." };
   const supabase = await createSupabaseServerClient();
