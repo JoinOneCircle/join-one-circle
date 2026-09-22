@@ -659,6 +659,48 @@ Object.assign(uiTranslations.es, {
   "We could not create the secure invitation. Please try again.": "No se pudo crear la invitación segura. Inténtalo de nuevo.",
 });
 
+Object.assign(uiTranslations.pt, {
+  "Add an update": "Adicionar uma atualização",
+  "Save what changed and, when useful, attach the supporting file directly to this update.": "Registre o que mudou e, quando for útil, anexe o arquivo de apoio diretamente a esta atualização.",
+  "Update title": "Título da atualização",
+  "Details": "Detalhes",
+  "What changed, what was observed, and what should happen next?": "O que mudou, o que foi observado e o que deve acontecer em seguida?",
+  "Attach a file": "Anexar arquivo",
+  "Optional: PDF, image or DOCX (up to 25 MB)": "Opcional: PDF, imagem ou DOCX (até 25 MB)",
+  "File access": "Acesso ao arquivo",
+  "Family only": "Somente família",
+  "Family & school": "Família e escola",
+  "Active circle": "Círculo ativo",
+  "Save update": "Salvar atualização",
+  "Copy": "Copiar",
+  "Copy update": "Copiar atualização",
+  "Copied": "Copiado",
+  "Copy failed": "Não foi possível copiar",
+  "Download update": "Baixar atualização",
+  "Download attachment": "Baixar anexo",
+});
+
+Object.assign(uiTranslations.es, {
+  "Add an update": "Añadir una actualización",
+  "Save what changed and, when useful, attach the supporting file directly to this update.": "Guarda lo que cambió y, cuando sea útil, adjunta el archivo de apoyo directamente a esta actualización.",
+  "Update title": "Título de la actualización",
+  "Details": "Detalles",
+  "What changed, what was observed, and what should happen next?": "¿Qué cambió, qué se observó y qué debería ocurrir después?",
+  "Attach a file": "Adjuntar archivo",
+  "Optional: PDF, image or DOCX (up to 25 MB)": "Opcional: PDF, imagen o DOCX (hasta 25 MB)",
+  "File access": "Acceso al archivo",
+  "Family only": "Solo familia",
+  "Family & school": "Familia y escuela",
+  "Active circle": "Círculo activo",
+  "Save update": "Guardar actualización",
+  "Copy": "Copiar",
+  "Copy update": "Copiar actualización",
+  "Copied": "Copiado",
+  "Copy failed": "No se pudo copiar",
+  "Download update": "Descargar actualización",
+  "Download attachment": "Descargar adjunto",
+});
+
 export function translateUi(language: SupportedLanguage, source: string): string {
   if (language === "en") return source;
   const exact = uiTranslations[language][source];

@@ -580,10 +580,21 @@ button, summary { -webkit-tap-highlight-color: transparent; }
 .record-editor .quick-create { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
 .record-item-list { display: grid; gap: 10px; margin-top: 18px; }
 .record-item-list article { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; padding: 17px 18px; border: 1px solid var(--line); border-radius: 14px; background: #fafcf9; }
+.record-item-list article > div { min-width: 0; }
 .record-item-list h3 { margin: 0 0 5px; font-size: 16px; }
 .record-item-list p { margin: 0 0 5px; }
 .record-item-list small { color: var(--muted); }
 .record-item-list .quiet-button { flex: 0 0 auto; padding: 8px 12px; font-size: 12px; }
+.record-item-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+.record-item-actions button, .record-item-actions a { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 6px 9px; border: 1px solid var(--line); border-radius: 9px; background: white; color: var(--green-800); cursor: pointer; font: inherit; font-size: 11px; font-weight: 800; text-decoration: none; }
+.record-item-actions button:hover, .record-item-actions a:hover { border-color: var(--green-600); background: #f2f8ef; }
+.record-update-entry { display: grid; grid-template-columns: minmax(210px,.6fr) minmax(0,1.4fr); gap: 24px; align-items: start; margin-top: 23px; padding: 23px; border: 1px solid #cfe0cd; border-radius: 16px; background: linear-gradient(135deg,#f5faf2,#fff); }
+.record-update-entry h3 { margin: 0 0 7px; font-size: 18px; }
+.record-update-entry > div > p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.record-update-form--inline .record-update-notes, .record-update-form--inline .record-file-picker, .record-update-form--inline .record-update-actions { grid-column: 1 / -1; }
+.record-file-access { max-width: 265px; }
+.record-update-actions { display: flex; justify-content: flex-end; }
+.record-update-actions .button { min-height: 43px; }
 .record-admin { margin-top: 28px; }
 .record-admin > .danger-button, .record-admin > form:last-child .danger-button { margin-top: 22px; padding: 10px 13px; border: 1px solid #eaccc7; border-radius: 11px; background: #fff9f8; color: #993d35; cursor: pointer; font-weight: 700; }
 .record-admin > .danger-button:hover, .record-admin > form:last-child .danger-button:hover { border-color: #cd8c83; background: #fff1ef; }
@@ -832,6 +843,10 @@ button, summary { -webkit-tap-highlight-color: transparent; }
   .quick-create { grid-template-columns: 1fr; }
   .record-editor .quick-create, .record-admin .form-row { grid-template-columns: 1fr; }
   .record-item-list article { flex-direction: column; }
+  .record-update-entry { grid-template-columns: 1fr; padding: 18px; }
+  .record-file-access { max-width: none; }
+  .record-update-actions { justify-content: stretch; }
+  .record-update-actions .button { width: 100%; }
   .module-toolbar { align-items: flex-start; flex-direction: column; }
   .module-toolbar .button { width: 100%; }
   .module-list { overflow: visible; padding: 10px; background: transparent; border: 0; }

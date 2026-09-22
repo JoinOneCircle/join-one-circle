@@ -4,6 +4,8 @@ import { createRecordItem, deleteChild, deleteRecordItem, updateChild } from "..
 import { DemoChildRecord } from "./demo-child-record";
 import { ConfirmDeleteForm } from "@/components/confirm-delete-form";
 import { LocalizedDate } from "@/components/localized-date";
+import { RecordItemActions } from "./record-item-actions";
+import { RecordUpdateForm } from "./record-update-form";
 
 const sections = [
   ["Passport", "Who the child is, how they communicate and what matters to them.", "passport"],
@@ -19,6 +21,13 @@ const sections = [
 
 type RecordItem = { id: string; record_area: string; title: string; body: unknown; updated_at: string };
 const itemSummary = (body: unknown) => typeof body === "object" && body && "summary" in body && typeof (body as { summary?: unknown }).summary === "string" ? (body as { summary: string }).summary : "";
+const itemAttachment = (body: unknown) => {
+  if (typeof body !== "object" || !body || !("attachment" in body)) return undefined;
+  const attachment = (body as { attachment?: unknown }).attachment;
+  return typeof attachment === "object" && attachment && "id" in attachment && "title" in attachment && typeof (attachment as { id?: unknown }).id === "string" && typeof (attachment as { title?: unknown }).title === "string"
+    ? attachment as { id: string; title: string }
+    : undefined;
+};
 
 export default async function ChildRecord({ params, searchParams }: { params: Promise<{ childId: string }>; searchParams: Promise<{ area?: string; error?: string; message?: string }> }) {
   const { childId } = await params;
@@ -42,8 +51,8 @@ export default async function ChildRecord({ params, searchParams }: { params: Pr
     <details className="record-more"><summary><span>See more parts of the child record</span><small>Choose a section to open and add information</small></summary><p>You can use these when they are useful. Nothing needs to be completed all at once.</p><div className="record-grid">{additionalSections.map(([section, copy, area]) => <Link key={section} href={`${recordLink(area)}#record-area`} data-selected={activeArea === area || undefined}><article><div className="record-card-top"><p className="eyebrow">{areasWithContent.has(area) ? "IN PROGRESS" : "READY TO START"}</p><span aria-hidden="true">→</span></div><h2>{section}</h2><p>{copy}</p><strong className="card-action">Open section <span aria-hidden="true">›</span></strong></article></Link>)}</div></details>
     {activeArea && activeSection && <section className="panel record-editor" id="record-area">
       <div className="panel-title"><div><p className="eyebrow">{activeArea.toUpperCase()}</p><h2>{activeSection[0]}</h2><p>{activeSection[1]}</p></div></div>
-      {activeItems.length ? <div className="record-item-list">{activeItems.map((item) => <article key={item.id}><div><h3>{item.title}</h3>{itemSummary(item.body) && <p>{itemSummary(item.body)}</p>}<small>Updated <LocalizedDate value={item.updated_at} /></small></div><ConfirmDeleteForm action={deleteRecordItem} values={{ child_id: childId, item_id: item.id, record_area: activeArea }} itemName={item.title} itemType="record update" triggerClassName="quiet-button" /></article>)}</div> : <p className="empty-filter">Nothing has been added to this area yet.</p>}
-      <form className="quick-create" action={createRecordItem}><input type="hidden" name="child_id" value={childId} /><input type="hidden" name="record_area" value={activeArea} /><label className="field">Title<input name="title" maxLength={200} required /></label><label className="field">Summary<textarea name="summary" rows={3} /></label><button className="button button--small" type="submit">Save to record</button></form>
+      {activeItems.length ? <div className="record-item-list">{activeItems.map((item) => { const attachment = itemAttachment(item.body); return <article key={item.id}><div><h3>{item.title}</h3>{itemSummary(item.body) && <p data-no-translate>{itemSummary(item.body)}</p>}<small>Updated <LocalizedDate value={item.updated_at} /></small><RecordItemActions title={item.title} summary={itemSummary(item.body)} area={activeSection[0]} updatedAt={item.updated_at} attachment={attachment} /></div><ConfirmDeleteForm action={deleteRecordItem} values={{ child_id: childId, item_id: item.id, record_area: activeArea }} itemName={item.title} itemType="record update" triggerClassName="quiet-button" /></article>; })}</div> : <p className="empty-filter">Nothing has been added to this area yet.</p>}
+      <div className="record-update-entry"><div><h3>Add an update</h3><p>Save what changed and, when useful, attach the supporting file directly to this update.</p></div><RecordUpdateForm action={createRecordItem} childId={childId} recordArea={activeArea} /></div>
     </section>}
     <section className="panel record-admin"><h2>Child details</h2><form action={updateChild} className="form-row"><input type="hidden" name="child_id" value={childId} /><label className="field">Preferred name<input name="child_name" defaultValue={child.preferred_name} maxLength={120} required /></label><label className="field">Date of birth<input name="date_of_birth" type="date" defaultValue={child.date_of_birth ?? ""} /></label><button className="quiet-button" type="submit">Save details</button></form><ConfirmDeleteForm action={deleteChild} values={{ child_id: childId }} itemName={`${child.preferred_name}'s child record`} itemType="child record" triggerLabel="Delete child record" /></section>
   </>;

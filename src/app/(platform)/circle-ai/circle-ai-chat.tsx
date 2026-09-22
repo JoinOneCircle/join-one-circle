@@ -63,28 +63,30 @@ export function CircleAiChat({ childId, childName, childOptions, viewerRole, dem
     window.addEventListener("join-one-circle-language-change", syncLanguage);
     if (!demo) {
       let cancelled = false;
-      setConversationId(null);
-      setMessages([{ role: "assistant", text: opening[next] }]);
-      fetch(`/api/circle-ai?childId=${encodeURIComponent(activeChildId)}`, { cache: "no-store" })
-        .then(async (response) => ({ response, data: await response.json() }))
-        .then(({ response, data }) => {
-          if (!response.ok) throw new Error(data.error || "history-unavailable");
-          if (cancelled) return;
-          setConfigured(Boolean(data.configured));
-          const latest = Array.isArray(data.conversations) ? data.conversations[0] : null;
-          const savedMessages = Array.isArray(latest?.ai_messages)
-            ? latest.ai_messages
-              .filter((message: { role?: unknown; content?: unknown }) => (message.role === "user" || message.role === "assistant") && typeof message.content === "string")
-              .sort((a: { created_at?: string }, b: { created_at?: string }) => String(a.created_at ?? "").localeCompare(String(b.created_at ?? "")))
-              .map((message: { role: "user" | "assistant"; content: string }) => ({ role: message.role, text: message.content }))
-            : [];
-          if (latest?.id && savedMessages.length) {
-            setConversationId(latest.id);
-            setMessages([{ role: "assistant", text: opening[next] }, ...savedMessages]);
-          }
-        })
-        .catch(() => { if (!cancelled) setConfigured(false); });
-      return () => { cancelled = true; window.clearTimeout(timer); window.removeEventListener("join-one-circle-language-change", syncLanguage); };
+      const liveTimer = window.setTimeout(() => {
+        setConversationId(null);
+        setMessages([{ role: "assistant", text: opening[next] }]);
+        fetch(`/api/circle-ai?childId=${encodeURIComponent(activeChildId)}`, { cache: "no-store" })
+          .then(async (response) => ({ response, data: await response.json() }))
+          .then(({ response, data }) => {
+            if (!response.ok) throw new Error(data.error || "history-unavailable");
+            if (cancelled) return;
+            setConfigured(Boolean(data.configured));
+            const latest = Array.isArray(data.conversations) ? data.conversations[0] : null;
+            const savedMessages = Array.isArray(latest?.ai_messages)
+              ? latest.ai_messages
+                .filter((message: { role?: unknown; content?: unknown }) => (message.role === "user" || message.role === "assistant") && typeof message.content === "string")
+                .sort((a: { created_at?: string }, b: { created_at?: string }) => String(a.created_at ?? "").localeCompare(String(b.created_at ?? "")))
+                .map((message: { role: "user" | "assistant"; content: string }) => ({ role: message.role, text: message.content }))
+              : [];
+            if (latest?.id && savedMessages.length) {
+              setConversationId(latest.id);
+              setMessages([{ role: "assistant", text: opening[next] }, ...savedMessages]);
+            }
+          })
+          .catch(() => { if (!cancelled) setConfigured(false); });
+      }, 0);
+      return () => { cancelled = true; window.clearTimeout(timer); window.clearTimeout(liveTimer); window.removeEventListener("join-one-circle-language-change", syncLanguage); };
     }
     return () => { window.clearTimeout(timer); window.removeEventListener("join-one-circle-language-change", syncLanguage); };
   }, [demo, activeChildId]);
