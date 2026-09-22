@@ -678,6 +678,7 @@ Object.assign(uiTranslations.pt, {
   "Copy failed": "Não foi possível copiar",
   "Download update": "Baixar atualização",
   "Download attachment": "Baixar anexo",
+  "will be removed. This cannot be undone.": "será removida. Esta ação não pode ser desfeita.",
 });
 
 Object.assign(uiTranslations.es, {
@@ -699,6 +700,7 @@ Object.assign(uiTranslations.es, {
   "Copy failed": "No se pudo copiar",
   "Download update": "Descargar actualización",
   "Download attachment": "Descargar adjunto",
+  "will be removed. This cannot be undone.": "se eliminará. Esta acción no se puede deshacer.",
 });
 
 export function translateUi(language: SupportedLanguage, source: string): string {
