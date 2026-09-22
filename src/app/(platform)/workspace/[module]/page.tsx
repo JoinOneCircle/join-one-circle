@@ -34,6 +34,20 @@ export default async function WorkspaceModule({ params }: { params: Promise<{ mo
     reports: ["school", "local_authority"], audit: ["local_authority"],
   };
   if (!allowedRoles[moduleId]?.includes(context.role)) redirect("/dashboard");
+  // These organisation workspaces do not yet have a persistent, tenant-scoped
+  // data model. Never present sample rows or browser-only edits as live child
+  // information in a signed-in production account.
+  if (!context.demo) {
+    return <>
+      <header className="workspace-header"><div><p className="eyebrow">{view.eyebrow}</p><h1>{view.title}</h1><p>{view.intro}</p></div><Link className="profile" href="/dashboard">Dashboard</Link></header>
+      <section className="empty-state workspace-live-state" aria-labelledby="workspace-live-title">
+        <p className="eyebrow">AUTHORISATION REQUIRED</p>
+        <h2 id="workspace-live-title">This workspace is being connected to authorised records</h2>
+        <p>Only verified, permissioned information can appear here. No child information can be added or stored in this area until that connection is complete.</p>
+        <Link className="button button-primary" href="/dashboard">Return to dashboard</Link>
+      </section>
+    </>;
+  }
   if (moduleId === "send-register" || moduleId === "plans") {
     const initialItems: SchoolWorkspaceItem[] = moduleId === "send-register"
       ? [

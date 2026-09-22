@@ -42,7 +42,7 @@ function translateDocument(language: SupportedLanguage) {
   let node = walker.nextNode() as Text | null;
   while (node) {
     const parent = node.parentElement;
-    if (parent && !["SCRIPT", "STYLE", "NOSCRIPT"].includes(parent.tagName)) {
+    if (parent && !["SCRIPT", "STYLE", "NOSCRIPT"].includes(parent.tagName) && !parent.closest("[data-no-translate]")) {
       if (!originalText.has(node)) originalText.set(node, node.nodeValue ?? "");
       const source = originalText.get(node) ?? "";
       const trimmed = source.trim();
@@ -51,6 +51,7 @@ function translateDocument(language: SupportedLanguage) {
     node = walker.nextNode() as Text | null;
   }
   document.querySelectorAll("[placeholder],[aria-label],[title]").forEach((element) => {
+    if (element.closest("[data-no-translate]")) return;
     let saved = originalAttributes.get(element);
     if (!saved) { saved = new Map(); originalAttributes.set(element, saved); }
     for (const name of ["placeholder", "aria-label", "title"]) {

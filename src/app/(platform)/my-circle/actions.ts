@@ -1,9 +1,9 @@
 "use server";
 
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { configuredSiteOrigin } from "@/lib/security/redirect";
 
 export type InviteState = { error?: string; invitationUrl?: string; message?: string };
 const value = (data: FormData, key: string) => String(data.get(key) ?? "").trim();
@@ -20,16 +20,26 @@ export async function invitePerson(_: InviteState, formData: FormData): Promise<
   if (!authData.user) return { error: "Sign in before inviting someone." };
   const { data, error } = await supabase!.rpc("create_child_invitation", { p_child_id: childId, p_email: email, p_role: role, p_read_areas: readAreas, p_contribute_areas: contributeAreas });
   if (error || !data?.[0]?.invitation_token) return { error: error?.message ?? "The invitation could not be created." };
-  const incoming = await headers();
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || `${incoming.get("x-forwarded-proto") ?? "http"}://${incoming.get("host")}`;
+  let origin: string;
+  try {
+    // Invitation tokens must never be constructed from an attacker-controlled
+    // Host/X-Forwarded-Host value. Production requires the configured origin.
+    origin = configuredSiteOrigin(process.env.NEXT_PUBLIC_SITE_URL, process.env.NODE_ENV);
+  } catch {
+    return { error: "Secure invitation links are not configured yet. Ask an administrator to complete the site setup." };
+  }
   revalidatePath("/my-circle");
   return { message: "Invitation created. Share this single-use link only with the intended person.", invitationUrl: `${origin}/invite/${data[0].invitation_token}` };
 }
 
-export async function revokeAccess(formData: FormData) {
+export type RevokeState = { error?: string; message?: string };
+
+export async function revokeAccess(formData: FormData): Promise<RevokeState> {
   const childId = value(formData, "child_id"); const userId = value(formData, "user_id");
-  if (!childId || !userId || !isSupabaseConfigured) return;
+  if (!childId || !userId || !isSupabaseConfigured) return { error: "This access change could not be completed." };
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase!.rpc("revoke_child_access", { p_child_id: childId, p_user_id: userId });
-  if (!error) revalidatePath("/my-circle");
+  if (error) return { error: "This access change could not be completed. Check your permission and try again." };
+  revalidatePath("/my-circle");
+  return { message: "Access removed. This person can no longer open this child record." };
 }

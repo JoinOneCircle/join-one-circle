@@ -18,7 +18,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <label className="field">Email address<input name="email" type="email" autoComplete="email" required /></label>
       {query.resend === "confirmation" && <div className="auth-resend"><span>Need another confirmation email?</span><button className="quiet-button" type="submit" formAction={resendConfirmation} formNoValidate>Send a new link</button></div>}
       <PasswordField label="Password" name="password" autoComplete="current-password" />
-      <div className="form-link-row"><label className="checkbox-field"><input type="checkbox" name="remember" /> Keep me signed in</label><Link href="/forgot-password">Forgot password?</Link></div>
+      <div className="form-link-row"><span className="field-hint">Your session is protected on this device.</span><Link href="/forgot-password">Forgot password?</Link></div>
       <button className="button auth-submit" type="submit">Sign in securely</button>
     </form>
     <p className="auth-switch">New to Join One Circle? <Link href="/signup">Create an account</Link></p>

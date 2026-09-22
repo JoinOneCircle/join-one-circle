@@ -19,6 +19,7 @@ const sections = [
 export function DemoChildRecord({ childId, area }: { childId: string; area?: string }) {
   const state = useDemoState();
   const router = useRouter();
+  const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [selectedArea, setSelectedArea] = useState(() => sections.some((section) => section[2] === area) ? area! : "passport");
@@ -32,6 +33,14 @@ export function DemoChildRecord({ childId, area }: { childId: string; area?: str
       return () => window.clearTimeout(timer);
     }
   }, [area]);
+  // Local demo data is available only after browser hydration. Showing a
+  // missing-record error during that short hand-off makes a valid saved child
+  // appear to have disappeared after a refresh.
+  useEffect(() => {
+    const timer = window.setTimeout(() => setReady(true), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+  if (!ready) return <section className="panel demo-record-loading" aria-busy="true"><h1>Opening child record</h1><p>Loading this browser&apos;s saved demonstration data.</p></section>;
   if (!child) return <section className="panel"><h1>Child record not found</h1><p>This record may have been removed.</p><Link className="button button--small" href="/children">Back to children</Link></section>;
   const items = state.records.filter((item) => item.child_id === childId && item.record_area === activeSection[2]);
   const saveDetails = (event: FormEvent<HTMLFormElement>) => {
