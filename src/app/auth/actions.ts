@@ -34,10 +34,12 @@ export async function signUp(formData: FormData) {
   const email = text(formData, "email");
   const password = text(formData, "password");
   const confirmPassword = text(formData, "confirm_password");
+  const intendedRole = text(formData, "intended_role");
   if (name.length < 2 || name.length > 120) authRedirect("/signup", "error", "Enter your full name.");
   if (!/^\S+@\S+\.\S+$/.test(email)) authRedirect("/signup", "error", "Enter a valid email address.");
   if (password.length < 8) authRedirect("/signup", "error", "Use at least 8 characters for your password.");
   if (password !== confirmPassword) authRedirect("/signup", "error", "The passwords do not match.");
+  if (!["family", "school", "professional", "local_authority"].includes(intendedRole)) authRedirect("/signup", "error", "Choose how you will use Join One Circle.");
   if (formData.get("privacy_consent") !== "on") authRedirect("/signup", "error", "Accept the privacy notice to continue.");
   if (!isSupabaseConfigured) {
     if (isLocalDemoMode) redirect("/onboarding?demo=1");
@@ -54,7 +56,7 @@ export async function signUp(formData: FormData) {
     password,
     options: {
       emailRedirectTo: `${origin}/auth/callback?next=/onboarding`,
-      data: { display_name: name, preferred_language: language },
+      data: { display_name: name, preferred_language: language, intended_role: intendedRole },
     },
   });
   if (error) authRedirect("/signup", "error", "We could not create your account. Check the details and try again.");

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { BrandLogo } from "@/components/brand-logo";
 import { AppIcon, type AppIconName } from "@/components/app-icon";
 import { PlatformNavLink } from "@/components/platform-nav-link";
@@ -38,6 +39,9 @@ const roleNames: Record<ViewerRole, string> = { family: "Family workspace", scho
 
 export default async function PlatformLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const context = await getPlatformContext();
+  // A newly confirmed account has no role or access until this guided setup
+  // is complete. Do not silently present it as a family/parent workspace.
+  if (!context.onboarded) redirect("/onboarding");
   const items = navigation[context.role];
   return <div className="app-shell">
     <aside className="sidebar"><BrandLogo /><p className="sidebar-kicker">{roleNames[context.role]}</p><nav>{items.map((item) => <PlatformNavLink key={item.href} {...item} />)}</nav><p className="sidebar-section-label">ACCOUNT</p><nav><PlatformNavLink href="/account" icon="account" label="Profile & security" /></nav><form action={signOut}><button className="sidebar-signout" type="submit">Sign out</button></form><div className="privacy-note">Only authorised people can access a child&apos;s record. Important changes are recorded in the audit history.</div></aside>

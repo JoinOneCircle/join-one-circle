@@ -13,6 +13,16 @@ export default async function SignUpPage({ searchParams }: { searchParams: Promi
     {error && <div className="form-alert" role="alert">{error}</div>}
     <form className="auth-form" action={signUp}>
       <label className="field">Your name<input name="name" autoComplete="name" required /></label>
+      <label className="field">How will you use Join One Circle?
+        <select name="intended_role" required defaultValue="">
+          <option value="" disabled>Choose your role</option>
+          <option value="family">Family or carer</option>
+          <option value="school">School or SENCO</option>
+          <option value="professional">Professional</option>
+          <option value="local_authority">Local Authority</option>
+        </select>
+        <span className="field-hint">This gives you the right first step after confirmation. Access to children is never automatic.</span>
+      </label>
       <label className="field">Email address<input name="email" type="email" autoComplete="email" required /></label>
       <PasswordField label="Password" name="password" autoComplete="new-password" />
       <PasswordField label="Confirm password" name="confirm_password" autoComplete="new-password" />

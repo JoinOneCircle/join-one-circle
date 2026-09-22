@@ -15,8 +15,8 @@ const roles: { id: Role; icon: AppIconName; title: string; copy: string }[] = [
   { id: "local_authority", icon: "decisions", title: "Local Authority", copy: "Review cases, consultations and statutory decisions." },
 ];
 
-export function OnboardingFlow({ error, demo = false }: { error?: string; demo?: boolean }) {
-  const [role, setRole] = useState<Role | null>(null);
+export function OnboardingFlow({ error, demo = false, initialRole }: { error?: string; demo?: boolean; initialRole?: Role }) {
+  const [role, setRole] = useState<Role | null>(initialRole ?? null);
   const [demoError, setDemoError] = useState("");
   const router = useRouter();
   const rememberRole = (selectedRole: Role) => { document.cookie = `joc_demo_role=${selectedRole}; path=/; max-age=31536000; samesite=lax`; };

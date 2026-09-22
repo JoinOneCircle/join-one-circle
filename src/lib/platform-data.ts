@@ -18,6 +18,7 @@ export async function getPlatformContext() {
     const demoRole = normaliseRole((await cookies()).get("joc_demo_role")?.value);
     return {
       demo: true,
+      onboarded: true,
       userName: "Account",
       role: demoRole,
       children: [{ id: "demo-child", preferred_name: "Alex", date_of_birth: null }] satisfies ChildSummary[],
@@ -41,6 +42,9 @@ export async function getPlatformContext() {
 
   return {
     demo: false,
+    // An account is not assigned the family view by default. It must first
+    // choose a role and create a family circle or organisation workspace.
+    onboarded: Boolean(membership || circleMembership),
     userName: profile?.display_name ?? authData.user.user_metadata?.display_name ?? authData.user.email ?? "Account",
     role: normaliseRole(membership?.role ?? circleMembership?.role, organisation?.organisation_type),
     children: (children ?? []) as ChildSummary[],
