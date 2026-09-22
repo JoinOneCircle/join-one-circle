@@ -365,6 +365,54 @@ Object.assign(uiTranslations.es, {
   "PDF, JPG, PNG or DOCX (up to 25 MB)": "PDF, JPG, PNG o DOCX (hasta 25 MB)",
 });
 
+// Account-security UI is client-rendered after the page language has already
+// been selected, so keep every literal in the shared dictionary as well.
+Object.assign(uiTranslations.pt, {
+  "Change or reset password": "Alterar ou redefinir senha",
+  "Forgot your password? We will email a secure reset link.": "Esqueceu sua senha? Enviaremos um link seguro para redefini-la por e-mail.",
+  "End your session on this device.": "Encerre sua sessão neste dispositivo.",
+  "Checking account security…": "Verificando a segurança da conta…",
+  "Authenticator app enabled": "Aplicativo autenticador ativado",
+  "Your account requires a second step when you sign in.": "Sua conta exige uma segunda etapa ao entrar.",
+  "Not enabled": "Não ativada",
+  "Add an authenticator app for an extra sign-in check.": "Adicione um aplicativo autenticador para uma verificação extra ao entrar.",
+  "Set up": "Configurar",
+  "Preparing…": "Preparando…",
+  "Secure authentication is not configured yet.": "A autenticação segura ainda não está configurada.",
+  "We could not start authenticator setup. Please try again.": "Não foi possível iniciar a configuração do autenticador. Tente novamente.",
+  "Set up an authenticator app": "Configure um aplicativo autenticador",
+  "Scan this code with Google Authenticator, Microsoft Authenticator, Authy, or another TOTP app. If scanning is unavailable, enter the setup key manually.": "Escaneie este código com Google Authenticator, Microsoft Authenticator, Authy ou outro aplicativo TOTP. Se não puder escanear, informe a chave de configuração manualmente.",
+  "Use a manual setup key instead": "Usar uma chave de configuração manual",
+  "Six-digit code": "Código de seis dígitos",
+  "Enter the six-digit code from your authenticator app.": "Informe o código de seis dígitos do seu aplicativo autenticador.",
+  "That code was not accepted. Try the current code.": "Esse código não foi aceito. Tente o código atual.",
+  "Verifying…": "Verificando…",
+  "Enable authenticator": "Ativar autenticador",
+});
+
+Object.assign(uiTranslations.es, {
+  "Change or reset password": "Cambiar o restablecer contraseña",
+  "Forgot your password? We will email a secure reset link.": "¿Olvidaste tu contraseña? Te enviaremos por correo un enlace seguro para restablecerla.",
+  "End your session on this device.": "Cierra tu sesión en este dispositivo.",
+  "Checking account security…": "Comprobando la seguridad de la cuenta…",
+  "Authenticator app enabled": "Aplicación autenticadora activada",
+  "Your account requires a second step when you sign in.": "Tu cuenta requiere un segundo paso al iniciar sesión.",
+  "Not enabled": "No activada",
+  "Add an authenticator app for an extra sign-in check.": "Añade una aplicación autenticadora para una comprobación adicional al iniciar sesión.",
+  "Set up": "Configurar",
+  "Preparing…": "Preparando…",
+  "Secure authentication is not configured yet.": "La autenticación segura aún no está configurada.",
+  "We could not start authenticator setup. Please try again.": "No pudimos iniciar la configuración del autenticador. Inténtalo de nuevo.",
+  "Set up an authenticator app": "Configura una aplicación autenticadora",
+  "Scan this code with Google Authenticator, Microsoft Authenticator, Authy, or another TOTP app. If scanning is unavailable, enter the setup key manually.": "Escanea este código con Google Authenticator, Microsoft Authenticator, Authy u otra aplicación TOTP. Si no puedes escanearlo, introduce la clave de configuración manualmente.",
+  "Use a manual setup key instead": "Usar una clave de configuración manual",
+  "Six-digit code": "Código de seis dígitos",
+  "Enter the six-digit code from your authenticator app.": "Introduce el código de seis dígitos de tu aplicación autenticadora.",
+  "That code was not accepted. Try the current code.": "Ese código no fue aceptado. Prueba el código actual.",
+  "Verifying…": "Verificando…",
+  "Enable authenticator": "Activar autenticador",
+});
+
 export function translateUi(language: SupportedLanguage, source: string) {
   return language === "en" ? source : uiTranslations[language][source] ?? source;
 }
