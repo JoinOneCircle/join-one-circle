@@ -29,6 +29,7 @@ begin
     where membership.user_id = caller_id
       and membership.membership_status = 'active'
       and organisation.organisation_type = expected_type
+      and organisation.verification_status = 'verified'
     order by (organisation.verification_status = 'verified') desc, membership.created_at asc
     limit 1;
   end if;

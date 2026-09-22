@@ -1,18 +1,63 @@
--- Complete the invitation hand-off. Existing invited members receive the
--- basic Passport context, while the areas explicitly selected by the family
--- remain unchanged. This makes an authorised action/document usable without
--- exposing unrelated records.
+-- An accepted invite is a direct child grant unless the recipient already
+-- belongs to a verified matching organisation. Attaching a pending
+-- organisation makes can_access_area correctly deny institutional access,
+-- but previously also blocked the direct invitation itself.
 
-update public.child_circle_memberships membership
+update public.child_circle_memberships circle_member
+set organisation_id = null
+from public.organisations organisation
+where circle_member.organisation_id = organisation.id
+  and circle_member.is_access_admin = false
+  and circle_member.status in ('active', 'limited')
+  and organisation.verification_status <> 'verified';
+
+-- Passport is the deliberately small shared context for every accepted
+-- invitation (for example the child's preferred name). Earlier invitations
+-- may have been accepted before that baseline was introduced, so repair them
+-- as well without adding any of the sensitive record areas.
+update public.child_circle_memberships circle_member
 set permissions = jsonb_set(
-  coalesce(membership.permissions, '{}'::jsonb),
+  coalesce(circle_member.permissions, '{}'::jsonb),
   '{read_areas}',
-  coalesce(membership.permissions -> 'read_areas', '[]'::jsonb) || '["passport"]'::jsonb,
+  (
+    select jsonb_agg(area)
+    from (
+      select distinct area
+      from jsonb_array_elements_text(
+        case when jsonb_typeof(circle_member.permissions -> 'read_areas') = 'array'
+          then circle_member.permissions -> 'read_areas'
+          else '[]'::jsonb
+        end
+      ) as existing(area)
+      union
+      select 'passport'
+    ) visible_areas
+  ),
   true
 )
-where membership.status in ('active', 'limited')
-  and membership.is_access_admin = false
-  and not (coalesce(membership.permissions -> 'read_areas', '[]'::jsonb) ? 'passport');
+where circle_member.is_access_admin = false
+  and circle_member.status in ('active', 'limited');
+
+create or replace function public.list_visible_circle_members()
+returns table(
+  child_id uuid,
+  user_id uuid,
+  role public.platform_role,
+  status public.circle_access_status,
+  is_access_admin boolean,
+  permissions jsonb,
+  display_name text
+)
+language sql stable security definer set search_path = public as $$
+  select membership.child_id, membership.user_id, membership.role, membership.status,
+    membership.is_access_admin, membership.permissions, coalesce(profile.display_name, 'Authorised person')
+  from public.child_circle_memberships membership
+  left join public.profiles profile on profile.id = membership.user_id
+  where membership.user_id = auth.uid() or public.can_manage_child_access(membership.child_id)
+  order by membership.granted_at nulls last, profile.display_name;
+$$;
+revoke all on function public.list_visible_circle_members() from public;
+grant execute on function public.list_visible_circle_members() to authenticated;
 
 create or replace function public.accept_child_invitation(p_token text)
 returns uuid language plpgsql security definer set search_path = public as $$
@@ -31,8 +76,8 @@ begin
       and status = 'pending' and expires_at > now() for update;
   if invitation.id is null then raise exception 'This invitation is invalid, expired or no longer available'; end if;
   if invitation.email_hash <> encode(extensions.digest(caller_email, 'sha256'), 'hex') then raise exception 'This invitation belongs to a different email address'; end if;
-
   granted_permissions := jsonb_set(coalesce(invitation.permissions, '{}'::jsonb), '{read_areas}', coalesce(invitation.permissions -> 'read_areas', '[]'::jsonb) || '["passport"]'::jsonb, true);
+
   expected_type := case when invitation.role in ('senco', 'school_staff') then 'school'
                         when invitation.role = 'professional' then 'professional_practice'
                         when invitation.role = 'local_authority' then 'local_authority'
@@ -43,7 +88,7 @@ begin
     join public.organisations organisation on organisation.id = membership.organisation_id
     where membership.user_id = caller_id and membership.membership_status = 'active'
       and organisation.organisation_type = expected_type and organisation.verification_status = 'verified'
-    order by (organisation.verification_status = 'verified') desc, membership.created_at asc limit 1;
+    order by membership.created_at asc limit 1;
   end if;
 
   insert into public.profiles(id, display_name)
@@ -59,26 +104,5 @@ begin
   return invitation.child_id;
 end;
 $$;
-
 revoke all on function public.accept_child_invitation(text) from public;
 grant execute on function public.accept_child_invitation(text) to authenticated;
-
--- Realtime messages are filtered by the table's RLS policies. An open
--- authorised workspace refreshes when a shared record, document, action or
--- circle membership changes.
-do $$
-begin
-  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'child_record_items') then
-    execute 'alter publication supabase_realtime add table public.child_record_items';
-  end if;
-  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'child_documents') then
-    execute 'alter publication supabase_realtime add table public.child_documents';
-  end if;
-  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'child_actions') then
-    execute 'alter publication supabase_realtime add table public.child_actions';
-  end if;
-  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'child_circle_memberships') then
-    execute 'alter publication supabase_realtime add table public.child_circle_memberships';
-  end if;
-end;
-$$;
