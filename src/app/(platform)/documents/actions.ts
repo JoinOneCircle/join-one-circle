@@ -64,3 +64,14 @@ export async function deleteDocument(formData: FormData) {
   if (error) redirect(`/documents?error=${encodeURIComponent(error.message)}`);
   revalidatePath("/documents"); revalidatePath(`/children/${document.child_id}`);
 }
+
+export async function confirmDocument(formData: FormData) {
+  const documentId = value(formData, "document_id");
+  const note = value(formData, "note");
+  if (!documentId || note.length > 1000) redirect("/documents?error=invalid-document-confirmation");
+  const { supabase } = await liveClient();
+  const { error } = await supabase.rpc("confirm_child_document", { p_document_id: documentId, p_note: note });
+  if (error) redirect(`/documents?error=${encodeURIComponent(error.message)}`);
+  revalidatePath("/documents");
+  redirect("/documents?message=document-confirmed");
+}

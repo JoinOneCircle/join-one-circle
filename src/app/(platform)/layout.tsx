@@ -12,7 +12,7 @@ type NavItem = { icon: AppIconName; label: string; href: string };
 const navigation: Record<ViewerRole, NavItem[]> = {
   family: [
     { icon: "today", label: "Today", href: "/dashboard" }, { icon: "children", label: "My children", href: "/children" },
-    { icon: "actions", label: "Actions", href: "/actions" }, { icon: "documents", label: "Documents", href: "/documents" },
+    { icon: "actions", label: "Actions", href: "/actions" }, { icon: "documents", label: "Documents", href: "/documents" }, { icon: "reviews", label: "Calendar", href: "/calendar" },
     { icon: "ai", label: "Circle AI", href: "/circle-ai" }, { icon: "circle", label: "My Circle", href: "/my-circle" },
   ],
   school: [
@@ -20,17 +20,17 @@ const navigation: Record<ViewerRole, NavItem[]> = {
     { icon: "plans", label: "Plans & APDR", href: "/workspace/plans" }, { icon: "ehcp", label: "EHCP tracker", href: "/workspace/ehcp-tracker" },
     { icon: "provision", label: "Provision", href: "/workspace/provision" }, { icon: "reviews", label: "Reviews", href: "/workspace/reviews" },
     { icon: "documents", label: "Import pupils", href: "/data-import" },
-    { icon: "documents", label: "Documents", href: "/documents" }, { icon: "ai", label: "Circle AI", href: "/circle-ai" },
+    { icon: "documents", label: "Documents", href: "/documents" }, { icon: "reviews", label: "Calendar", href: "/calendar" }, { icon: "ai", label: "Circle AI", href: "/circle-ai" },
   ],
   professional: [
     { icon: "today", label: "Today", href: "/dashboard" }, { icon: "children", label: "Shared children", href: "/children" }, { icon: "caseload", label: "Caseload", href: "/workspace/caseload" },
-    { icon: "requests", label: "Requests", href: "/workspace/requests" }, { icon: "actions", label: "Actions", href: "/actions" },
+    { icon: "requests", label: "Requests", href: "/workspace/requests" }, { icon: "actions", label: "Actions", href: "/actions" }, { icon: "reviews", label: "Calendar", href: "/calendar" },
     { icon: "documents", label: "Reports & documents", href: "/documents" }, { icon: "ai", label: "Circle AI", href: "/circle-ai" },
   ],
   local_authority: [
     { icon: "today", label: "Overview", href: "/dashboard" }, { icon: "children", label: "Shared children", href: "/children" }, { icon: "caseload", label: "Cases", href: "/workspace/cases" },
     { icon: "requests", label: "Consultations", href: "/workspace/consultations" }, { icon: "reviews", label: "Statutory deadlines", href: "/workspace/deadlines" },
-    { icon: "documents", label: "Documents", href: "/documents" }, { icon: "decisions", label: "Decisions", href: "/workspace/decisions" },
+    { icon: "documents", label: "Documents", href: "/documents" }, { icon: "reviews", label: "Calendar", href: "/calendar" }, { icon: "decisions", label: "Decisions", href: "/workspace/decisions" },
     { icon: "reports", label: "Reports", href: "/workspace/reports" }, { icon: "audit", label: "Audit", href: "/workspace/audit" },
   ],
 };
