@@ -19,7 +19,10 @@ export async function invitePerson(_: InviteState, formData: FormData): Promise<
   const { data: authData } = await supabase!.auth.getUser();
   if (!authData.user) return { error: "Sign in before inviting someone." };
   const { data, error } = await supabase!.rpc("create_child_invitation", { p_child_id: childId, p_email: email, p_role: role, p_read_areas: readAreas, p_contribute_areas: contributeAreas });
-  if (error || !data?.[0]?.invitation_token) return { error: error?.message ?? "The invitation could not be created." };
+  // Database details (for example a missing extension) must not be exposed in
+  // the interface. The migration fixes the underlying cause; the person
+  // sending an invite only needs a clear, safe retry message.
+  if (error || !data?.[0]?.invitation_token) return { error: "We could not create the secure invitation. Please try again." };
   let origin: string;
   try {
     // Invitation tokens must never be constructed from an attacker-controlled
