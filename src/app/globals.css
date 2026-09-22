@@ -150,6 +150,8 @@ button, summary { -webkit-tap-highlight-color: transparent; }
 .auth-submit { border: 0; cursor: pointer; width: 100%; }
 .auth-switch { padding-top: 22px; text-align: center; color: var(--muted); font-size: 14px; }
 .form-alert { border: 1px solid #e2cba7; background: var(--warning); border-radius: 13px; padding: 12px 14px; font-size: 13px; line-height: 1.45; }
+.auth-resend { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; margin: -4px 0 2px; padding: 13px; border: 1px solid var(--line); border-radius: 14px; background: #f8fbf6; }
+.auth-resend .quiet-button { min-height: 47px; white-space: nowrap; }
 .checkbox-field { display: flex; align-items: flex-start; gap: 10px; color: var(--muted); font-size: 12px; line-height: 1.45; }
 .checkbox-field input { margin-top: 2px; }
 
@@ -694,6 +696,7 @@ button, summary { -webkit-tap-highlight-color: transparent; }
   .auth-message p, .auth-proof { display: none; }
   .auth-card-wrap { padding: 45px 22px 70px; place-items: start center; }
   .form-row { grid-template-columns: 1fr; }
+  .auth-resend { grid-template-columns: 1fr; }
   .onboarding-header { padding: 10px 16px; }
   .onboarding-header > span { display: none; }
   .onboarding-content { padding: 45px 18px 70px; grid-template-columns: 1fr; gap: 32px; }

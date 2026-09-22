@@ -80,6 +80,17 @@ export async function requestPasswordReset(formData: FormData) {
   redirect(`/login?message=${encodeURIComponent("Check your email for a secure password reset link.")}`);
 }
 
+export async function resendConfirmation(formData: FormData) {
+  const email = text(formData, "email");
+  if (!/^\S+@\S+\.\S+$/.test(email)) authRedirect("/login", "error", "Enter a valid email address.");
+  if (!isSupabaseConfigured) authRedirect("/login", "error", "The secure service is not configured yet.");
+  const requestHeaders = await headers();
+  const origin = configuredSiteOrigin(process.env.NEXT_PUBLIC_SITE_URL, process.env.NODE_ENV, requestHeaders.get("origin"));
+  const supabase = await createSupabaseServerClient();
+  await supabase!.auth.resend({ type: "signup", email, options: { emailRedirectTo: `${origin}/auth/callback?next=/onboarding` } });
+  redirect(`/login?message=${encodeURIComponent("If this account needs confirmation, we sent a new secure link. Check your email.")}`);
+}
+
 export async function updatePassword(formData: FormData) {
   if (!isSupabaseConfigured) authRedirect("/reset-password", "error", "Password reset is unavailable until the secure service is configured.");
   const password = text(formData, "password");

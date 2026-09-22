@@ -2,17 +2,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AuthShell } from "@/components/auth-shell";
 import { PasswordField } from "@/components/password-field";
-import { signIn } from "../auth/actions";
+import { resendConfirmation, signIn } from "../auth/actions";
 import { safeInternalPath } from "@/lib/security/redirect";
 
 export const metadata: Metadata = { title: "Sign in" };
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; message?: string; next?: string }> }) {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; message?: string; next?: string; resend?: string }> }) {
   const query = await searchParams;
   return <AuthShell title="Welcome back." copy="Open the child records and actions you are authorised to support.">
     <h2>Sign in</h2><p>Use the email connected to your circle.</p>
     {query.error && <div className="form-alert" role="alert">{query.error}</div>}
     {query.message && <div className="notice" role="status">{query.message}</div>}
+    {query.resend === "confirmation" && <form className="auth-resend" action={resendConfirmation}>
+      <label className="field">Email address<input name="email" type="email" autoComplete="email" required /></label>
+      <button className="quiet-button" type="submit">Send a new confirmation link</button>
+    </form>}
     <form className="auth-form" action={signIn}>
       <input type="hidden" name="next" value={safeInternalPath(query.next)} />
       <label className="field">Email address<input name="email" type="email" autoComplete="email" required /></label>
