@@ -22,6 +22,9 @@ export async function signIn(formData: FormData) {
   }
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase!.auth.signInWithPassword({ email: text(formData, "email"), password: text(formData, "password") });
+  if (error?.message.toLowerCase().includes("email not confirmed")) {
+    authRedirect("/login", "error", "Confirm your email first. Open the secure link we sent when you created your account.");
+  }
   if (error) authRedirect("/login", "error", "We could not sign you in. Check your email and password and try again.");
   redirect(next);
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { BrandLogo } from "@/components/brand-logo";
 import { LanguageSelect } from "@/components/language-preference";
 
@@ -50,13 +51,10 @@ export default function Home() {
           </ul>
         </div>
 
-        <div className="record-preview" aria-label="Example child record overview">
-          <div className="preview-topline"><span className="status-dot" /> Child record protected <span>•••</span></div>
-          <div className="child-summary"><div className="child-avatar">A</div><div><small>CHILD’S CIRCLE</small><h2>Alex’s support</h2><p>5 authorised people</p></div></div>
-          <div className="next-step-card"><div><small>NEXT STEP</small><strong>Review school support outcomes</strong></div><span>Due in 4 days</span></div>
-          <div className="preview-grid"><article><span>Needs</span><strong>6</strong><small>2 updated</small></article><article><span>Documents</span><strong>12</strong><small>All together</small></article><article><span>Actions</span><strong>3</strong><small>1 for you</small></article></div>
-          <div className="circle-people"><span>Family</span><span>School</span><span>Professional</span><b>+2</b></div>
-        </div>
+        <figure className="hero-family-photo">
+          <Image src="/hero-family-support.png" alt="A family and a trusted supporter sitting together at home" fill priority sizes="(max-width: 960px) 100vw, 45vw" />
+          <figcaption><span className="status-dot" aria-hidden="true" /> One circle. One clear next step.</figcaption>
+        </figure>
       </section>
 
       <section className="value-strip" aria-label="Key benefits">
