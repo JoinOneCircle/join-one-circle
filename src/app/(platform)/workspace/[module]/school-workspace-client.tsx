@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AppIcon, type AppIconName } from "@/components/app-icon";
+import { LocalizedDate } from "@/components/localized-date";
 
 export type SchoolWorkspaceItem = {
   id: string;
@@ -88,7 +89,7 @@ export function SchoolWorkspaceClient({ moduleId, title, icon, cta, initialItems
       {items.map((item) => <article className="school-list-item" key={item.id}>
         <div className="school-item-person"><strong>{item.pupil}</strong><small>{isRegister ? "SEND register entry" : item.type}</small></div>
         <div className="school-item-focus"><span className="school-type-chip">{isRegister ? item.type : "Plan"}</span><p>{item.focus}</p>{!isRegister && item.owner && <small>Owner: {item.owner}</small>}</div>
-        <time dateTime={item.reviewDate}>{new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(`${item.reviewDate}T12:00:00`))}</time>
+        <LocalizedDate value={`${item.reviewDate}T12:00:00`} dateTime={item.reviewDate} />
         <label className="school-status"><span className="visually-hidden">Status for {item.pupil}</span><select value={item.status} onChange={(event) => updateStatus(item.id, event.target.value as SchoolWorkspaceItem["status"])}>{statusOptions.map((status) => <option key={status}>{status}</option>)}</select></label>
         <button className="school-details-button" type="button" aria-expanded={expandedId === item.id} onClick={() => setExpandedId((current) => current === item.id ? null : item.id)}>{expandedId === item.id ? "Hide" : "View"}</button>
         {expandedId === item.id && <div className="school-item-details"><div><small>{isRegister ? "SUPPORT LEVEL" : "PLAN TYPE"}</small><strong>{item.type}</strong></div><div><small>{isRegister ? "PRIMARY NEED" : "FOCUS / OUTCOME"}</small><strong>{item.focus}</strong></div>{item.owner && <div><small>OWNER</small><strong>{item.owner}</strong></div>}<p>{isRegister ? "Use the authorised pupil record for detailed evidence, documents and family collaboration." : "Use the authorised pupil record to add evidence, contributions and review notes for this plan."}</p></div>}

@@ -8,6 +8,7 @@ export type SupportedLanguage = "en" | "pt" | "es";
 const storageKey = "join-one-circle-language";
 const eventName = "join-one-circle-language-change";
 const originalText = new WeakMap<Text, string>();
+const originalElementText = new WeakMap<Element, string>();
 const originalAttributes = new WeakMap<Element, Map<string, string>>();
 
 function supportedLanguage(value?: string | null): SupportedLanguage {
@@ -38,11 +39,27 @@ function translateString(source: string, language: SupportedLanguage) {
 }
 
 function translateDocument(language: SupportedLanguage) {
+  // Translate whole, text-only elements first. This is important for
+  // sentences composed with React values (for example, a workspace area or
+  // record count): a text-node walker cannot translate a sentence split by
+  // interpolation. Elements with child elements are deliberately left alone
+  // so buttons, links and form controls keep their structure and behaviour.
+  document.querySelectorAll("p, small, strong, span, h1, h2, h3, label, button, li, option, summary, time, a, th, td").forEach((element) => {
+    if (element.children.length || element.closest("[data-no-translate]")) return;
+    const current = element.textContent ?? "";
+    if (!originalElementText.has(element)) originalElementText.set(element, current);
+    const stored = originalElementText.get(element) ?? "";
+    const expected = translateString(stored.trim(), language);
+    if (current !== stored && current !== expected) originalElementText.set(element, current);
+    const source = originalElementText.get(element) ?? "";
+    const translated = source.replace(source.trim(), translateString(source.trim(), language));
+    if (current !== translated) element.textContent = translated;
+  });
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   let node = walker.nextNode() as Text | null;
   while (node) {
     const parent = node.parentElement;
-    if (parent && !["SCRIPT", "STYLE", "NOSCRIPT"].includes(parent.tagName) && !parent.closest("[data-no-translate]")) {
+    if (parent && !originalElementText.has(parent) && !["SCRIPT", "STYLE", "NOSCRIPT"].includes(parent.tagName) && !parent.closest("[data-no-translate]")) {
       if (!originalText.has(node)) originalText.set(node, node.nodeValue ?? "");
       const source = originalText.get(node) ?? "";
       const trimmed = source.trim();

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AppIcon, type AppIconName } from "@/components/app-icon";
 import { ConfirmDeleteForm } from "@/components/confirm-delete-form";
+import { LocalizedDate } from "@/components/localized-date";
 import { createInstitutionalWorkspaceItem, deleteInstitutionalWorkspaceItem, updateInstitutionalWorkspaceItemStatus } from "./institutional-workspace-actions";
 
 export type InstitutionalModule = "send-register" | "plans" | "ehcp-tracker" | "provision" | "reviews" | "reports" | "team" | "caseload" | "requests" | "cases" | "consultations" | "deadlines" | "decisions" | "audit";
@@ -39,11 +40,6 @@ const moduleVerb: Record<Props["moduleId"], string> = {
   caseload: "Add caseload item", requests: "Add request", cases: "Add case", consultations: "Add consultation", deadlines: "Add deadline", decisions: "Record decision", audit: "Add audit note",
 };
 
-function dueLabel(value: string | null) {
-  if (!value) return "No review date";
-  return new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(`${value}T12:00:00`));
-}
-
 export function InstitutionalWorkspace({ moduleId, title, icon, childList, items, canContribute, workspaceReady, userId, error, message }: Props) {
   const activeCount = items.filter((item) => !["complete", "cancelled"].includes(item.status)).length;
   const childName = new Map(childList.map((child) => [child.id, child.preferred_name]));
@@ -81,7 +77,7 @@ export function InstitutionalWorkspace({ moduleId, title, icon, childList, items
       {items.length === 0 ? <div className="workspace-empty"><AppIcon name={icon} size={26} /><h2>Nothing here yet</h2><p>When an authorised child is shared and a team member adds a {moduleNoun[moduleId]}, it will appear here.</p></div> : items.map((item) => <article className="module-row institutional-row" key={item.id}>
         <span><strong>{childName.get(item.child_id) ?? "Authorised child"}</strong><small>{item.linked_record_item_id ? "Linked to child record" : "Operational workspace item"}</small></span>
         <span><strong>{item.title}</strong>{item.summary && <small>{item.summary}</small>}</span>
-        <time dateTime={item.due_on ?? undefined}>{dueLabel(item.due_on)}</time>
+        {item.due_on ? <LocalizedDate value={`${item.due_on}T12:00:00`} dateTime={item.due_on} /> : <span>No review date</span>}
         <form action={updateInstitutionalWorkspaceItemStatus}><input type="hidden" name="module_id" value={moduleId} /><input type="hidden" name="item_id" value={item.id} /><label className="visually-hidden" htmlFor={`status-${item.id}`}>Status for {item.title}</label><select id={`status-${item.id}`} name="status" defaultValue={item.status} disabled={!canContribute}>{Object.entries(labels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>{canContribute && <button className="quiet-button" type="submit">Save</button>}</form>
         <span className="institutional-actions">{childList.find((child) => child.id === item.child_id)?.can_open_record ? <Link href={`/children/${item.child_id}`}>Open record</Link> : <span className="field-hint">Authorised workspace item</span>}{item.created_by === userId && <ConfirmDeleteForm action={deleteInstitutionalWorkspaceItem} values={{ module_id: moduleId, item_id: item.id }} itemName={item.title} itemType={moduleNoun[moduleId]} triggerLabel="Remove" />}</span>
       </article>)}
