@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const value = (formData: FormData, key: string) => String(formData.get(key) ?? "").trim();
+const values = (formData: FormData, key: string) => [...new Set(formData.getAll(key).map((item) => String(item).trim()).filter(Boolean))];
 const toIsoDateTime = (value: string) => {
   const timestamp = Date.parse(value);
   return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : null;
@@ -23,6 +24,7 @@ export async function createChildEvent(formData: FormData) {
   const description = value(formData, "description");
   const startsAt = value(formData, "starts_at");
   const endsAt = value(formData, "ends_at");
+  const participantIds = values(formData, "participant_ids");
   if (!childId || !title || !startsAt) redirect("/calendar?error=Enter%20a%20child%2C%20title%20and%20start%20time.");
   const startTimestamp = toIsoDateTime(startsAt);
   const endTimestamp = endsAt ? toIsoDateTime(endsAt) : null;
@@ -34,6 +36,7 @@ export async function createChildEvent(formData: FormData) {
     p_description: description,
     p_starts_at: startTimestamp,
     p_ends_at: endTimestamp,
+    p_participant_ids: participantIds,
   });
   if (error) redirect(`/calendar?error=${encodeURIComponent(error.message)}`);
   revalidatePath("/calendar");

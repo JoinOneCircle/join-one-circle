@@ -642,6 +642,10 @@ button, summary { -webkit-tap-highlight-color: transparent; }
 .calendar-create p { color: var(--muted); line-height: 1.5; }
 .calendar-create form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-content: start; }
 .calendar-description { grid-column: 1 / -1; }
+.calendar-participants { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 14px; border: 1px solid var(--line); border-radius: 18px; }
+.calendar-participants legend { padding: 0 6px; font-weight: 700; }
+.calendar-participants .field-hint { width: 100%; margin: 0 0 4px; }
+.calendar-participants .permission-chip small { font-weight: 500; }
 .event-list { display: grid; gap: 10px; }
 .event-list > article { display: flex; justify-content: space-between; gap: 22px; padding: 20px; border: 1px solid var(--line); border-radius: 16px; }
 .event-list h2 { margin: 4px 0 7px; font-size: 20px; }
