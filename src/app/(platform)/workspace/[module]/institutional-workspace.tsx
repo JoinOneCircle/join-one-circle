@@ -42,6 +42,9 @@ const moduleVerb: Record<Props["moduleId"], string> = {
 };
 
 export function InstitutionalWorkspace({ moduleId, title, icon, childList, sharedChildren, items, canContribute, workspaceReady, userId, error, message }: Props) {
+  // Reports, team and audit are projections of their real source records.
+  // They must not offer a disconnected scratch-list that looks authoritative.
+  const allowsOperationalNotes = !["reports", "team", "audit"].includes(moduleId);
   const activeCount = items.filter((item) => !["complete", "cancelled"].includes(item.status)).length;
   const childName = new Map(childList.map((child) => [child.id, child.preferred_name]));
   const contributableChildren = childList.filter((child) => child.can_contribute);
@@ -64,13 +67,13 @@ export function InstitutionalWorkspace({ moduleId, title, icon, childList, share
     <section className="school-workspace-summary">
       <span className="school-summary-icon"><AppIcon name={icon} size={24} /></span>
       <div><strong>{workspaceReady ? activeCount ? `${activeCount} active ${activeCount === 1 ? "item" : "items"}` : "No active items" : "Organisation verification is pending"}</strong><p>{workspaceReady ? `Only children and ${areaDescription} shared with your verified organisation appear here.` : "Directly shared child records are available above. School-wide coordination tools activate after organisation verification."}</p></div>
-      {canContribute && contributableChildren.length > 0 && <a className="button button--small" href="#add-workspace-item">{moduleVerb[moduleId]}</a>}
+      {allowsOperationalNotes && canContribute && contributableChildren.length > 0 && <a className="button button--small" href="#add-workspace-item">{moduleVerb[moduleId]}</a>}
     </section>
     {error && <p className="form-message form-message--error" role="alert">{error}</p>}
     {message === "saved" && <p className="form-message" role="status">Workspace item saved.</p>}
     {message === "removed" && <p className="form-message" role="status">Workspace item removed.</p>}
 
-    {canContribute && <section className="school-create-panel" id="add-workspace-item" aria-label={moduleVerb[moduleId]}>
+    {allowsOperationalNotes && canContribute && <section className="school-create-panel" id="add-workspace-item" aria-label={moduleVerb[moduleId]}>
       <div><p className="eyebrow">CONNECTED WORKSPACE</p><h2>{moduleVerb[moduleId]}</h2><p>This creates an operational {moduleNoun[moduleId]} linked to the authorised child record. The record remains the source of truth.</p></div>
       <form action={createInstitutionalWorkspaceItem}>
         <input type="hidden" name="module_id" value={moduleId} />
@@ -82,19 +85,19 @@ export function InstitutionalWorkspace({ moduleId, title, icon, childList, share
       </form>
     </section>}
 
-    {!workspaceReady && <section className="empty-filter" aria-live="polite">Organisation verification is needed only for shared operational lists and school-wide updates. It does not remove a child record shared directly with you: use the child list above to open it.</section>}
-    {workspaceReady && !canContribute && <section className="empty-filter" aria-live="polite">Your access is read-only. Ask the child’s access administrator if you need permission to add or update {moduleNoun[moduleId]}s.</section>}
-    {canContribute && !contributableChildren.length && <section className="empty-filter" aria-live="polite">No child record with contribution permission has been shared with this verified organisation yet.</section>}
+    {allowsOperationalNotes && !workspaceReady && <section className="empty-filter" aria-live="polite">Organisation verification is needed only for shared operational lists and school-wide updates. It does not remove a child record shared directly with you: use the child list above to open it.</section>}
+    {allowsOperationalNotes && workspaceReady && !canContribute && <section className="empty-filter" aria-live="polite">Your access is read-only. Ask the child’s access administrator if you need permission to add or update {moduleNoun[moduleId]}s.</section>}
+    {allowsOperationalNotes && canContribute && !contributableChildren.length && <section className="empty-filter" aria-live="polite">No child record with contribution permission has been shared with this verified organisation yet.</section>}
 
-    <section className="panel module-list institutional-list" aria-label={`${title} list`}>
+    {allowsOperationalNotes && <section className="panel module-list institutional-list" aria-label={`${title} list`}>
       <div className="module-row module-row--header"><span>Child</span><span>Current item</span><span>Review date</span><span>Status</span><span className="visually-hidden">Actions</span></div>
-      {items.length === 0 ? <div className="workspace-empty"><AppIcon name={icon} size={26} /><h2>Nothing here yet</h2><p>When an authorised child is shared and a team member adds a {moduleNoun[moduleId]}, it will appear here.</p></div> : items.map((item) => <article className="module-row institutional-row" key={item.id}>
+      {items.length === 0 ? <div className="workspace-empty"><AppIcon name={icon} size={26} /><h2>No coordination notes yet</h2><p>Live child information is shown above. Add an operational {moduleNoun[moduleId]} only when the team needs a dated shared next step.</p></div> : items.map((item) => <article className="module-row institutional-row" key={item.id}>
         <span><strong>{childName.get(item.child_id) ?? "Authorised child"}</strong><small>{item.linked_record_item_id ? "Linked to child record" : "Operational workspace item"}</small></span>
         <span><strong>{item.title}</strong>{item.summary && <small>{item.summary}</small>}</span>
         {item.due_on ? <LocalizedDate value={`${item.due_on}T12:00:00`} dateTime={item.due_on} /> : <span>No review date</span>}
         <form action={updateInstitutionalWorkspaceItemStatus}><input type="hidden" name="module_id" value={moduleId} /><input type="hidden" name="item_id" value={item.id} /><label className="visually-hidden" htmlFor={`status-${item.id}`}>Status for {item.title}</label><select id={`status-${item.id}`} name="status" defaultValue={item.status} disabled={!canContribute}>{Object.entries(labels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>{canContribute && <button className="quiet-button" type="submit">Save</button>}</form>
         <span className="institutional-actions">{childList.find((child) => child.id === item.child_id)?.can_open_record ? <Link href={`/children/${item.child_id}`}>Open record</Link> : <span className="field-hint">Authorised workspace item</span>}{item.created_by === userId && <ConfirmDeleteForm action={deleteInstitutionalWorkspaceItem} values={{ module_id: moduleId, item_id: item.id }} itemName={item.title} itemType={moduleNoun[moduleId]} triggerLabel="Remove" />}</span>
       </article>)}
-    </section>
+    </section>}
   </>;
 }

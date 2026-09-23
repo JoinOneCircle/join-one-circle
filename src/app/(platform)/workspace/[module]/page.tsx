@@ -6,6 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { WorkspaceModuleClient } from "./workspace-module-client";
 import { SchoolWorkspaceClient, type SchoolWorkspaceItem } from "./school-workspace-client";
 import { InstitutionalWorkspace, type InstitutionalChild, type InstitutionalModule, type InstitutionalWorkspaceItem } from "./institutional-workspace";
+import { InstitutionalLiveProjections, type LiveProjection } from "./institutional-live-projections";
 
 type Module = { icon: AppIconName; eyebrow: string; title: string; intro: string; cta: string; rows: [string, string, string][] };
 type OrganisationMembership = { role: string; membership_status: string; organisations: { organisation_type: string; verification_status: string } | null };
@@ -30,6 +31,48 @@ const persistentModules = new Set<InstitutionalModule>([
   "send-register", "plans", "ehcp-tracker", "provision", "reviews", "reports", "team",
   "caseload", "requests", "cases", "consultations", "deadlines", "decisions", "audit",
 ]);
+
+type LiveRecord = { id: string; child_id: string; record_area: string; title: string; updated_at: string };
+type LiveDocument = { id: string; child_id: string; title: string; category: string; created_at: string };
+type LiveAction = { id: string; child_id: string; title: string; status: string; due_at: string | null; updated_at: string };
+type LiveEvent = { id: string; child_id: string; title: string; starts_at: string; status: string };
+type LiveConfirmation = { document_id: string; confirmed_at: string };
+type LiveNotification = { id: string; child_id: string | null; title: string; body: string; created_at: string };
+type LiveAudit = { id: string; child_id: string | null; event_type: string; entity_type: string; created_at: string };
+type LiveMember = { user_id: string; child_id: string; role: string; status: string; display_name: string | null };
+
+const moduleAreas: Partial<Record<InstitutionalModule, string[]>> = {
+  "send-register": ["need"], plans: ["outcome", "provision", "review"], "ehcp-tracker": ["ehcp", "review"], provision: ["provision", "delivery"],
+  reviews: ["review", "progress"], caseload: ["evidence", "progress"], requests: ["evidence"], cases: ["ehcp", "review"], consultations: ["ehcp", "review"], decisions: ["review"],
+};
+
+function workspaceLiveRows(moduleId: InstitutionalModule, source: {
+  records: LiveRecord[]; documents: LiveDocument[]; actions: LiveAction[]; events: LiveEvent[]; confirmations: LiveConfirmation[]; notifications: LiveNotification[]; audits: LiveAudit[]; members: LiveMember[];
+}) {
+  const rows: LiveProjection[] = [];
+  const addRecords = (areas: string[]) => source.records.filter((item) => areas.includes(item.record_area)).forEach((item) => rows.push({ id: item.id, childId: item.child_id, kind: "record", title: item.title, detail: item.record_area.replaceAll("_", " "), at: item.updated_at }));
+  const addDocuments = () => source.documents.forEach((item) => rows.push({ id: item.id, childId: item.child_id, kind: "document", title: item.title, detail: item.category, at: item.created_at }));
+  const addActions = () => source.actions.forEach((item) => rows.push({ id: item.id, childId: item.child_id, kind: "action", title: item.title, detail: item.status.replaceAll("_", " "), at: item.due_at ?? item.updated_at }));
+  const addEvents = () => source.events.filter((item) => item.status === "scheduled").forEach((item) => rows.push({ id: item.id, childId: item.child_id, kind: "event", title: item.title, detail: "Scheduled", at: item.starts_at }));
+  const addNotifications = () => source.notifications.forEach((item) => rows.push({ id: item.id, childId: item.child_id, kind: "notification", title: item.title, detail: item.body, at: item.created_at }));
+  const addAudit = () => source.audits.forEach((item) => rows.push({ id: item.id, childId: item.child_id, kind: "audit", title: item.event_type.replaceAll("_", " "), detail: item.entity_type.replaceAll("_", " "), at: item.created_at }));
+
+  if (moduleId === "reports") addDocuments();
+  else if (moduleId === "team") source.members.forEach((item) => rows.push({ id: `${item.child_id}-${item.user_id}`, childId: item.child_id, kind: "member", title: item.display_name ?? "Authorised person", detail: `${item.role.replaceAll("_", " ")} · ${item.status}`, at: null }));
+  else if (moduleId === "audit") addAudit();
+  else if (moduleId === "deadlines") { addEvents(); addActions(); }
+  else if (moduleId === "requests") { addDocuments(); addNotifications(); }
+  else if (moduleId === "reviews") { addRecords(moduleAreas[moduleId] ?? []); addEvents(); }
+  else if (moduleId === "consultations") { addRecords(moduleAreas[moduleId] ?? []); addEvents(); addDocuments(); }
+  else {
+    addRecords(moduleAreas[moduleId] ?? []);
+    if (["provision", "caseload", "cases"].includes(moduleId)) addActions();
+    if (["caseload", "cases", "ehcp-tracker", "decisions"].includes(moduleId)) addDocuments();
+  }
+  const confirmationDocumentIds = new Set(source.confirmations.map((item) => item.document_id));
+  if (["requests", "decisions"].includes(moduleId)) source.documents.filter((item) => confirmationDocumentIds.has(item.id)).forEach((item) => rows.push({ id: `confirmation-${item.id}`, childId: item.child_id, kind: "confirmation", title: `${item.title} confirmed`, detail: "A circle member has acknowledged this document", at: item.created_at }));
+  return rows.sort((a, b) => (b.at ?? "").localeCompare(a.at ?? "")).slice(0, 12);
+}
 
 function organisationCanUseModule(membership: OrganisationMembership, moduleId: string) {
   const organisation = membership.organisations;
@@ -59,16 +102,30 @@ export default async function WorkspaceModule({ params, searchParams }: { params
     const supabase = await createSupabaseServerClient();
     const { data: auth } = await supabase!.auth.getUser();
     if (!auth.user) redirect(`/login?next=/workspace/${moduleId}`);
-    const [{ data: children }, { data: items }, { data: memberships }] = await Promise.all([
+    const [{ data: children }, { data: items }, { data: memberships }, { data: records }, { data: documents }, { data: actions }, { data: events }, { data: confirmations }, { data: notifications }, { data: audits }, { data: members }] = await Promise.all([
       supabase!.rpc("list_workspace_children", { p_module: moduleId }),
       supabase!.from("institutional_workspace_items").select("id, child_id, title, summary, due_on, status, created_by, linked_record_item_id").eq("workspace_module", moduleId).order("due_on", { ascending: true, nullsFirst: false }).order("created_at", { ascending: false }),
       supabase!.from("organisation_memberships").select("role, membership_status, organisations(organisation_type, verification_status)").eq("user_id", auth.user.id),
+      supabase!.from("child_record_items").select("id, child_id, record_area, title, updated_at").order("updated_at", { ascending: false }).limit(80),
+      supabase!.from("child_documents").select("id, child_id, title, category, created_at").order("created_at", { ascending: false }).limit(80),
+      supabase!.from("child_actions").select("id, child_id, title, status, due_at, updated_at").order("updated_at", { ascending: false }).limit(80),
+      supabase!.from("child_events").select("id, child_id, title, starts_at, status").order("starts_at", { ascending: true }).limit(80),
+      supabase!.from("child_document_confirmations").select("document_id, confirmed_at").order("confirmed_at", { ascending: false }).limit(80),
+      supabase!.from("notifications").select("id, child_id, title, body, created_at").order("created_at", { ascending: false }).limit(80),
+      supabase!.from("audit_events").select("id, child_id, event_type, entity_type, created_at").not("child_id", "is", null).order("created_at", { ascending: false }).limit(80),
+      supabase!.rpc("list_visible_circle_members"),
     ]);
     const liveChildren = (children ?? []) as InstitutionalChild[];
     const liveItems = (items ?? []) as InstitutionalWorkspaceItem[];
+    const childNames = new Map<string, string>([...liveChildren, ...context.children].map((child) => [child.id, child.preferred_name]));
+    const liveRows = workspaceLiveRows(moduleId as InstitutionalModule, {
+      records: (records ?? []) as LiveRecord[], documents: (documents ?? []) as LiveDocument[], actions: (actions ?? []) as LiveAction[], events: (events ?? []) as LiveEvent[],
+      confirmations: (confirmations ?? []) as LiveConfirmation[], notifications: (notifications ?? []) as LiveNotification[], audits: (audits ?? []) as LiveAudit[], members: (members ?? []) as LiveMember[],
+    });
     const workspaceReady = ((memberships ?? []) as unknown as OrganisationMembership[]).some((membership) => organisationCanUseModule(membership, moduleId));
     return <>
       <header className="workspace-header"><div><p className="eyebrow">{view.eyebrow}</p><h1>{view.title}</h1><p>{view.intro}</p></div><Link className="profile" href="/dashboard">Dashboard</Link></header>
+      <InstitutionalLiveProjections moduleId={moduleId as InstitutionalModule} rows={liveRows} childNames={childNames} openableChildIds={new Set([...liveChildren, ...context.children].filter((child) => child.can_open_record !== false).map((child) => child.id))} />
       <InstitutionalWorkspace moduleId={moduleId as InstitutionalModule} title={view.title} icon={view.icon} childList={liveChildren} sharedChildren={context.children.map((child) => ({ id: child.id, preferred_name: child.preferred_name, can_contribute: false, can_open_record: child.can_open_record ?? true }))} items={liveItems} canContribute={liveChildren.some((child) => child.can_contribute)} workspaceReady={workspaceReady} userId={auth.user.id} error={query.error} message={query.message} />
     </>;
   }

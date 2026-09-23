@@ -693,6 +693,16 @@ button, summary { -webkit-tap-highlight-color: transparent; }
 .module-row select { cursor: pointer; }
 .module-row input, .module-row select { min-width: 0; }
 .institutional-list .module-row { grid-template-columns: minmax(130px,.8fr) minmax(190px,1.45fr) minmax(125px,.7fr) minmax(145px,.8fr) minmax(125px,.65fr); }
+.institutional-live-projections { margin: 24px 0; }
+.institutional-live-list { display: grid; gap: 8px; }
+.institutional-live-list > article { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 13px 0; border-top: 1px solid var(--line); }
+.institutional-live-list > article:first-child { border-top: 0; padding-top: 0; }
+.institutional-live-icon { display: grid; place-items: center; width: 34px; height: 34px; color: var(--green); border-radius: 10px; background: #edf5e7; }
+.institutional-live-list small, .institutional-live-list p, .institutional-live-list time { display: block; color: var(--muted); }
+.institutional-live-list small { margin-bottom: 2px; font-size: 12px; }
+.institutional-live-list strong { display: block; }
+.institutional-live-list p { margin: 3px 0; font-size: 14px; line-height: 1.38; }
+.institutional-live-list time { font-size: 12px; }
 .institutional-row > span { display: grid; gap: 4px; min-width: 0; }
 .institutional-row strong { color: var(--ink); overflow-wrap: anywhere; }
 .institutional-row small { color: var(--muted); line-height: 1.35; overflow-wrap: anywhere; }
@@ -895,6 +905,8 @@ button, summary { -webkit-tap-highlight-color: transparent; }
   .module-list { overflow: visible; padding: 10px; background: transparent; border: 0; }
   .module-row { min-width: 0; grid-template-columns: 1fr; gap: 8px; margin-bottom: 10px; padding: 17px; border: 1px solid var(--line); border-radius: 16px; background: white; }
   .institutional-list .module-row { grid-template-columns: 1fr; }
+  .institutional-live-list > article { grid-template-columns: 38px minmax(0, 1fr); }
+  .institutional-live-list > article .quiet-button { grid-column: 2; justify-self: start; }
   .module-row--header { display: none; }
   .workspace-add { grid-template-columns: 1fr; padding: 20px; }
   .workspace-add form { grid-template-columns: 1fr; }
