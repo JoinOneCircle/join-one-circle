@@ -63,6 +63,15 @@ const securityHeaders = [
 const privateResponseHeaders = [{ key: "Cache-Control", value: "private, no-store, max-age=0" }];
 
 const nextConfig: NextConfig = {
+  // Document uploads are handled by the reviewed Server Action in
+  // /documents/actions.ts. The action itself rejects files over 25 MB and
+  // disallowed MIME types; this slightly higher transport limit accounts for
+  // multipart form overhead before the action receives the file.
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "30mb",
+    },
+  },
   // Pin the project root — there are multiple lockfiles on this machine, and
   // production builds use webpack (see the "build" script) for Netlify
   // compatibility with Next.js 16 middleware.
