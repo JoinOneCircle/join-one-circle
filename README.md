@@ -23,3 +23,19 @@ O esquema não cria dados reais de crianças. Antes de produção, é obrigatór
 Sem chaves Supabase, o ambiente de desenvolvimento abre uma demonstração local. Crianças, itens do record, ações, perfil e rascunhos de convite ficam no `localStorage` do navegador; arquivos de exemplo ficam no IndexedDB. Os dados sobrevivem a atualização da página no mesmo navegador, mas **não são autenticados, sincronizados, compartilhados ou seguros para dados reais de crianças**. Convites da demonstração são apenas rascunhos: nenhum e-mail é enviado e nenhuma permissão é concedida. Não use informações pessoais reais nessa modalidade.
 
 Em `/privacy`, a demonstração permite consultar auditoria local, restaurar versões anteriores de dados do registro, simular o ciclo de acesso sem conceder permissões, exportar metadados JSON e apagar tudo que foi salvo neste navegador. A retenção configurada nessa tela é aplicada manualmente a auditoria, versões e cenários de acesso encerrados; não apaga automaticamente registros ativos nem inclui bytes de arquivos no JSON exportado.
+
+## Teste de integração do círculo real
+
+`npm test` não cria contas nem altera um banco. Para validar o fluxo real de RLS e RPCs — pai → convite → aceite → acesso ao perfil → documento com escopo → confirmação → notificação — use somente um projeto Supabase local ou dedicado de testes:
+
+```powershell
+$env:JOC_RUN_LIVE_INTEGRATION = "1"
+$env:SUPABASE_TEST_URL = "http://127.0.0.1:54321"
+$env:SUPABASE_TEST_ANON_KEY = "..."
+$env:SUPABASE_TEST_SERVICE_ROLE_KEY = "..."
+npm run test:integration
+```
+
+O teste cria duas contas `@example.test` e remove os dados ao terminar. Para um alvo remoto de testes, além de usar credenciais próprias desse projeto, defina conscientemente `JOC_ALLOW_REMOTE_TESTS=1`. O comando recusa fazer mutações remotas sem essa confirmação.
+
+Ainda não há uma API para um administrador indicar um convidado comum como participante de calendário: hoje os participantes são o criador e os administradores de acesso da criança. Esse limite é registrado pelo teste, em vez de ser mascarado com inserções de serviço.
