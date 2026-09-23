@@ -5,6 +5,10 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const value = (formData: FormData, key: string) => String(formData.get(key) ?? "").trim();
+const toIsoDateTime = (value: string) => {
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : null;
+};
 
 async function client() {
   const supabase = await createSupabaseServerClient();
@@ -20,13 +24,16 @@ export async function createChildEvent(formData: FormData) {
   const startsAt = value(formData, "starts_at");
   const endsAt = value(formData, "ends_at");
   if (!childId || !title || !startsAt) redirect("/calendar?error=Enter%20a%20child%2C%20title%20and%20start%20time.");
+  const startTimestamp = toIsoDateTime(startsAt);
+  const endTimestamp = endsAt ? toIsoDateTime(endsAt) : null;
+  if (!startTimestamp || (endsAt && !endTimestamp)) redirect("/calendar?error=Enter%20a%20valid%20start%20and%20end%20time.");
   const supabase = await client();
   const { error } = await supabase.rpc("create_child_event", {
     p_child_id: childId,
     p_title: title,
     p_description: description,
-    p_starts_at: new Date(startsAt).toISOString(),
-    p_ends_at: endsAt ? new Date(endsAt).toISOString() : null,
+    p_starts_at: startTimestamp,
+    p_ends_at: endTimestamp,
   });
   if (error) redirect(`/calendar?error=${encodeURIComponent(error.message)}`);
   revalidatePath("/calendar");
