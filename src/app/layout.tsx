@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { cookies } from "next/headers";
 import { LanguagePreference } from "@/components/language-preference";
+import { InterfaceLanguageProvider } from "@/components/interface-language-context";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import "./globals.css";
@@ -45,5 +46,5 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     }
   }
 
-  return <html lang={language} data-language={language} data-scroll-behavior="smooth"><body className={interfaceFont.variable}><LanguagePreference />{children}</body></html>;
+  return <html lang={language} data-language={language} data-scroll-behavior="smooth"><body className={interfaceFont.variable}><InterfaceLanguageProvider initialLanguage={language}><LanguagePreference />{children}</InterfaceLanguageProvider></body></html>;
 }

@@ -1,4 +1,5 @@
 "use client";
+import { ChildPicker } from "@/components/child-picker";
 
 import { useMemo, useState } from "react";
 import { createChildEvent } from "./actions";
@@ -27,12 +28,7 @@ export function CalendarCreateForm({ childOptions, candidatesByChild }: { childO
   };
 
   return <form action={createChildEvent} className="form-row">
-    <label className="field">Child
-      <select name="child_id" required value={childId} onChange={(event) => changeChild(event.target.value)}>
-        <option value="" disabled>Choose a child</option>
-        {childOptions.map((child) => <option key={child.id} value={child.id}>{child.preferred_name}</option>)}
-      </select>
-    </label>
+    <ChildPicker className="field" name="child_id" value={childId} required onValueChange={(nextValue) => changeChild(nextValue)} options={(childOptions.map((child) => ({ value: child.id, label: child.preferred_name })) ?? [])} />
     <label className="field">Title<input name="title" maxLength={200} required placeholder="e.g. Annual review" /></label>
     <label className="field">Starts<input name="starts_at" type="datetime-local" required /></label>
     <label className="field">Ends <span>(optional)</span><input name="ends_at" type="datetime-local" /></label>

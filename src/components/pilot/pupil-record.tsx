@@ -1,0 +1,41 @@
+"use client";
+import { useState } from "react";
+import { replacePilotQuery } from "@/lib/pilot-url";
+import { AppIcon } from "@/components/app-icon";
+import { profileLabels, usePilotLanguage } from "./pilot-language";
+import { profileGroups } from "./profile-fields";
+import { ChildParentAccess, type ChildAccessProps } from "./child-parent-access";
+import { SchoolFiles } from "./school-files";
+import { SchoolPilotCalendar } from "./school-calendar";
+import { PupilEditor } from "./pupil-editor";
+import { PupilDocuments } from "./pupil-documents";
+import { PilotDialog } from "./pilot-dialog";
+import { useDateLabel } from "./pilot-ui";
+export function PupilRecord(props: ChildAccessProps & { close: () => void; initialTab?: string; initialPlan?: string; initialCreate?: boolean; error: string }) {
+  const { l } = usePilotLanguage(); const date = useDateLabel(); const [tab, setTab] = useState(props.initialPlan || props.initialCreate ? "documents" : ["parents", "files", "documents", "calendar"].includes(props.initialTab ?? "") ? props.initialTab! : "details"); const [editing, setEditing] = useState(false); const [occupied, setOccupied] = useState(false);
+  const [documentSession, setDocumentSession] = useState(0); const [createDocument, setCreateDocument] = useState(!!props.initialCreate);
+  const [pendingLeave, setPendingLeave] = useState<{ run: () => void } | null>(null);
+  const [documentPlan, setDocumentPlan] = useState(props.initialPlan ?? "");
+  const changeTab = (next: string) => {
+    setTab(next); if (next !== "documents") setDocumentPlan("");
+    replacePilotQuery({ tab: next, plan: null, newDocument: null });
+  };
+  const pupil = props.data.pupils.find((p) => p.child_id === props.childId);
+  const leave = (action: () => void) => { if (props.busy) return; const run = () => { setEditing(false); setOccupied(false); action(); }; if (editing || occupied) setPendingLeave({ run }); else run(); };
+  if (!pupil) return <section className="soft-card"><p role="status">{l("Record unavailable. Return to the list and check your school access.", "Ficha indisponível. Volte à lista e confira seu acesso à escola.", "Ficha no disponible. Vuelva a la lista y compruebe su acceso escolar.")}</p><button className="quiet-button" onClick={props.close}>{l("All children", "Todas as crianças", "Todos los menores")}</button></section>;
+  const plans = props.data.plans.filter((p) => p.child_id === pupil.child_id); const parents = props.data.recipients.filter((r) => r.child_id === pupil.child_id && r.recipient_role === "parent" && r.status !== "revoked");
+  const newDocument = () => leave(() => { setCreateDocument(true); setDocumentSession(n => n + 1); setTab("documents"); replacePilotQuery({ tab: "documents", plan: null, newDocument: "1" }); });
+  return <section className="pilot-record" data-no-translate>
+    <button className="ux-back" type="button" onClick={() => leave(props.close)}><AppIcon name="chevron-left" size={17}/>{l("All children", "Todas as crianças", "Todos los menores")}</button>
+    <header className="ux-child-heading"><span className="child-initial">{pupil.profile.preferred_name.slice(0,1)}</span><div className="ux-grow"><h1>{pupil.profile.preferred_name}</h1><p>{pupil.profile.year_group || l("Class not added", "Turma não informada", "Grupo no indicado")} · {l("Updated", "Atualizado em", "Actualizado el")} {date(pupil.updated_at)}</p></div>{tab !== "documents" && <button className="button" disabled={props.busy} onClick={newDocument}><AppIcon name="plus" size={17}/>{l("New document", "Novo documento", "Nuevo documento")}</button>}</header>
+    <nav className="pilot-record-tabs" aria-label={l("This child's record", "Ficha desta criança", "Ficha de este menor")}>{([["details","children","Details","Dados","Datos"],["documents","plans","Documents","Documentos","Documentos"],["files","documents","Attachments","Anexos","Archivos"],["calendar","calendar","Calendar","Calendário","Calendario"],["parents","circle","Parents & access","Responsáveis e acessos","Responsables y accesos"]] as const).map(([id,icon,...labels]) => <button key={id} type="button" aria-pressed={tab === id} onClick={() => { if (tab !== id) leave(() => { setCreateDocument(false); changeTab(id); }); }}><AppIcon name={icon} size={17}/>{l(...labels)}{id === "parents" && <span>{parents.length}</span>}{id === "documents" && <span>{plans.length}</span>}</button>)}</nav>
+    {tab === "details" && (editing ? <PupilEditor pupil={pupil} execute={props.execute} busy={props.busy} close={() => setEditing(false)}/> : <>
+      <div className="ux-record-actions"><div><strong>{l("Child information", "Informações da criança", "Información del menor")}</strong><p>{l("Linked template fields use this information when you create a new document.", "Os campos vinculados dos modelos usam estes dados ao criar um novo documento.", "Los campos vinculados usan estos datos al crear un documento nuevo.")}</p></div><button className="quiet-button" onClick={() => setEditing(true)}><AppIcon name="edit" size={16}/>{l("Edit details", "Editar dados", "Editar datos")}</button></div>
+      <div className="ux-profile-grid">{profileGroups.map((g) => <section className="soft-card" key={g.id}><h2>{l(...g.title)}</h2><dl className="pilot-profile-view">{g.fields.map((f) => <div key={f}><dt>{l(...profileLabels[f])}</dt><dd className={!pupil.profile[f] ? "ux-not-added" : ""}>{pupil.profile[f] || l("Not added yet", "Ainda não informado", "Aún no indicado")}</dd></div>)}</dl></section>)}</div>
+      <div className="ux-next-actions"><button onClick={newDocument}><AppIcon name="plans" size={22}/><span><strong>{l("Create a document from a template", "Criar documento com um modelo", "Crear documento con una plantilla")}</strong><small>{l("This child is already selected. Reuse their information and complete the draft here.", "Esta criança já está selecionada. Reaproveite os dados e preencha o rascunho aqui.", "Este menor ya está seleccionado. Reutilice sus datos y complete el borrador aquí.")}</small></span><AppIcon name="chevron-right" size={18}/></button><button onClick={() => changeTab("parents")}><AppIcon name="circle" size={22}/><span><strong>{l("Choose what each parent sees", "Escolher o que cada responsável vê", "Elegir qué ve cada responsable")}</strong><small>{parents.length ? l("Review individual access.", "Revise o acesso individual.", "Revise el acceso individual.") : l("No parent access is created automatically.", "Nenhum acesso é criado automaticamente.", "No se crea acceso automáticamente.")}</small></span><AppIcon name="chevron-right" size={18}/></button></div>
+    </>)}
+    {tab === "documents" && <PupilDocuments key={documentSession} {...props} initialPlan={documentSession ? "" : documentPlan} initialCreate={createDocument} onEditingChange={setOccupied} openParents={() => leave(() => changeTab("parents"))}/>}
+    {tab === "calendar" && <SchoolPilotCalendar key={props.childId} demo={props.demo} initialChild={props.childId} embedded/>}{tab === "files" && <SchoolFiles childId={props.childId} demo={props.demo} onBusyChange={setOccupied}/>}{tab === "parents" && <ChildParentAccess {...props} onEditingChange={setOccupied}/>}
+    {pendingLeave && <PilotDialog titleId="child-unsaved-title" busy={props.busy} close={() => setPendingLeave(null)}><h2 id="child-unsaved-title">{l("Leave without saving?", "Sair sem salvar?", "¿Salir sin guardar?")}</h2><p>{l("Keep editing to save your changes. If you continue now, only the unsaved changes in this form will be discarded.", "Continue editando para salvar suas alterações. Se sair agora, somente as alterações ainda não salvas neste formulário serão descartadas.", "Siga editando para guardar sus cambios. Si sale ahora, solo se descartarán los cambios sin guardar de este formulario.")}</p><div className="pilot-toolbar"><button className="button" autoFocus type="button" onClick={() => setPendingLeave(null)}>{l("Keep editing", "Continuar editando", "Seguir editando")}</button><button className="quiet-button" type="button" disabled={props.busy} onClick={() => { const action = pendingLeave.run; setPendingLeave(null); action(); }}>{l("Discard & continue", "Descartar e continuar", "Descartar y continuar")}</button></div></PilotDialog>}
+  </section>;
+}

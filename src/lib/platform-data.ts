@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { isLocalDemoMode, isSupabaseConfigured } from "./supabase/config";
 import { createSupabaseServerClient } from "./supabase/server";
+import { DEMO_WORKSPACE_COOKIE, resolveDemoWorkspace } from "./demo-workspace";
 
 export type ChildSummary = { id: string; preferred_name: string; date_of_birth: string | null; can_open_record?: boolean };
 export type ViewerRole = "family" | "school" | "professional" | "local_authority";
@@ -16,7 +17,7 @@ function normaliseRole(role?: string | null, organisationType?: string | null): 
 
 export async function getPlatformContext() {
   if (!isSupabaseConfigured && isLocalDemoMode) {
-    const demoRole = normaliseRole((await cookies()).get("joc_demo_role")?.value);
+    const demoRole = resolveDemoWorkspace((await cookies()).get(DEMO_WORKSPACE_COOKIE)?.value);
     return {
       demo: true,
       onboarded: true,
@@ -32,13 +33,19 @@ export async function getPlatformContext() {
   const { data: authData } = await supabase!.auth.getUser();
   if (!authData.user) redirect("/login");
 
-  const [{ data: profile }, { data: children }, { data: membership }, { data: circleMemberships }] = await Promise.all([
+  const [{ data: profile }, { data: children }, { data: memberships }, { data: circleMemberships }] = await Promise.all([
     supabase!.from("profiles").select("display_name").eq("id", authData.user.id).maybeSingle(),
     supabase!.from("children").select("id, preferred_name, date_of_birth").order("created_at", { ascending: true }),
-    supabase!.from("organisation_memberships").select("role, organisations(organisation_type)").eq("user_id", authData.user.id).limit(1).maybeSingle(),
+    supabase!.from("organisation_memberships").select("role, organisations(organisation_type, verification_status)").eq("user_id", authData.user.id).eq("membership_status", "active").order("created_at", { ascending: true }),
     supabase!.from("child_circle_memberships").select("child_id, role, status").eq("user_id", authData.user.id).in("status", ["active", "limited"]),
   ]);
 
+  // A staff invitation can add the existing account to the school. Do not
+  // keep choosing an older family organisation and hide the accepted case.
+  const membership = memberships?.find((row) => {
+    const organisation = row.organisations as unknown as { organisation_type?: string; verification_status?: string } | null;
+    return organisation?.organisation_type === "school" && organisation.verification_status === "verified";
+  }) ?? memberships?.[0];
   const organisation = membership?.organisations as unknown as { organisation_type?: string } | null;
 
   const accessibleChildren = new Map<string, ChildSummary>((children ?? []).map((child) => [child.id, { ...child, can_open_record: true } as ChildSummary]));

@@ -1,0 +1,5 @@
+.frame { border: 1px solid #b5cb9d; border-radius: 20px; background: #f4f8ee; }
+.mode { display: flex; align-items: flex-start; gap: 12px; color: #183f34; margin-bottom: 18px; }
+.mode > svg { flex: 0 0 auto; margin-top: 3px; }
+.mode strong { display: block; font-size: 15px; }
+.mode p { margin: 5px 0 0; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }

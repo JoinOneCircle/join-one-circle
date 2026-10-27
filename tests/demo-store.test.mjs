@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import test, { afterEach } from "node:test";
 import { demoId, initialDemoState, readDemoState, restoreDemoRecordVersion, runDemoRetention, transitionDemoInvitation, updateDemoState, writeDemoState } from "../src/lib/demo-store.ts";
+afterEach(() => { delete globalThis.window; });
 
 function browserStorage() {
   const values = new Map();

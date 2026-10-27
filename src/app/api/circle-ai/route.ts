@@ -34,6 +34,7 @@ function canUseAi(membership: Membership | null | undefined) {
 }
 
 export async function GET(request: Request) {
+  if (!isCircleAiConfigured()) return NextResponse.json({ ok: false, error: "ai-disabled-for-pilot" }, { status: 503 });
   if (!isSupabaseConfigured) return NextResponse.json({ ok: true, configured: false, conversations: [] });
   const childId = new URL(request.url).searchParams.get("childId");
   if (!childId) return NextResponse.json({ ok: true, configured: isCircleAiConfigured(), conversations: [] });

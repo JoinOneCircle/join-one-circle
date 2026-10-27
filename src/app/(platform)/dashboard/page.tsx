@@ -4,8 +4,9 @@ import { DashboardHelp, DashboardRole, DashboardSteps, FamilyNextStep } from "@/
 import { getPlatformContext, type ViewerRole } from "@/lib/platform-data";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { DemoDashboard } from "./demo-dashboard";
 import { markNotificationRead } from "./actions";
+import { SchoolPilotDashboard } from "@/components/pilot/school-dashboard";
+import { ParentPortal } from "@/components/pilot/parent-portal";
 
 type DashboardConfig = {
   eyebrow: string; title: string; intro: string;
@@ -28,7 +29,8 @@ const dashboards: Record<ViewerRole, DashboardConfig> = {
 
 export default async function Dashboard() {
   const context = await getPlatformContext();
-  if (context.demo && context.role === "family") return <DemoDashboard />;
+  if (context.role === "school") return <SchoolPilotDashboard demo={context.demo} />;
+  if (context.role === "family") return <ParentPortal demo={context.demo} />;
   let notifications: Array<{ id: string; child_id: string | null; title: string; body: string; created_at: string }> = [];
   if (isSupabaseConfigured) {
     const supabase = await createSupabaseServerClient();
@@ -37,7 +39,7 @@ export default async function Dashboard() {
   }
   const view = dashboards[context.role];
   const firstName = context.userName.split(" ")[0];
-  const isFamily = context.role === "family";
+  const isFamily = (context.role as ViewerRole) === "family";
   return <>
     <header className={`workspace-header ${isFamily ? "family-dashboard-header" : ""}`}><div><DashboardRole role={context.role} /><h1>{isFamily ? "Start with one thing" : view.title}</h1><p>{isFamily ? "Choose a child, then choose the one thing you need help with today." : view.intro}</p></div><Link className="profile" href="/account">{firstName || "Account"}</Link></header>
     {context.demo && <div className="demo-banner demo-banner--role-only"><Link href="/onboarding">Change role</Link></div>}

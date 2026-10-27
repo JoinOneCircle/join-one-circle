@@ -11,4 +11,5 @@ export async function markNotificationRead(formData: FormData) {
   if (!data.user) return;
   await supabase!.from("notifications").update({ read_at: new Date().toISOString() }).eq("id", notificationId).eq("user_id", data.user.id).is("read_at", null);
   revalidatePath("/dashboard");
+  revalidatePath("/", "layout");
 }

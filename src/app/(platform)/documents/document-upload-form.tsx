@@ -1,4 +1,5 @@
 "use client";
+import { ChildPicker } from "@/components/child-picker";
 
 import { ChangeEvent, useRef, useState } from "react";
 import { AppIcon } from "@/components/app-icon";
@@ -15,7 +16,7 @@ export function DocumentUploadForm({ childOptions, canManageChildIds, action }: 
   return <form className="upload-zone document-upload-form" action={action}>
     <span aria-hidden="true"><AppIcon name="documents" size={22} /></span>
     <div><h2>Add a document safely</h2><p>Choose a file, then check who can access it before saving.</p></div>
-    <label className="field">Child<select name="child_id" required value={childId} onChange={(event) => setChildId(event.target.value)}><option value="" disabled>Choose a child</option>{childOptions.map((child) => <option key={child.id} value={child.id}>{child.preferred_name}</option>)}</select></label>
+    <ChildPicker className="field" name="child_id" value={childId} required onValueChange={(nextValue) => setChildId(nextValue)} options={(childOptions.map((child) => ({ value: child.id, label: child.preferred_name })) ?? [])} />
     <label className="field">Document title<input name="title" required maxLength={200} /></label>
     {canManageChildIds.includes(childId) ? <label className="field">Access<select name="access_scope" defaultValue="family"><option value="family">Family only</option><option value="family_school">Family & school</option><option value="active_circle">Active circle</option></select></label> : <><input type="hidden" name="access_scope" value="family" /><p className="field-hint">Documents you contribute are sent to the family record for review.</p></>}
     <label className="field">Document type<select name="category" defaultValue="other"><option value="assessment">Assessment or report</option><option value="plan">Plan</option><option value="letter">Letter</option><option value="evidence">Evidence</option><option value="other">Other</option></select></label>

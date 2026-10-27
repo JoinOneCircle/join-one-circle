@@ -8,11 +8,15 @@ import { ConfirmDeleteForm } from "@/components/confirm-delete-form";
 import { DocumentUploadForm } from "./document-upload-form";
 import { AppIcon } from "@/components/app-icon";
 import { LocalizedDate } from "@/components/localized-date";
+import { SchoolPilotWorkspace } from "@/components/pilot/school-workspace";
+import { ParentPortal } from "@/components/pilot/parent-portal";
 
 const scopeLabels: Record<string, string> = { family: "Family only", family_school: "Family & school", active_circle: "Active circle" };
 
-export default async function DocumentsPage({ searchParams }: { searchParams: Promise<{ error?: string; message?: string }> }) {
+export default async function DocumentsPage({ searchParams }: { searchParams: Promise<{ error?: string; message?: string; child?: string }> }) {
   const context = await getPlatformContext(); const params = await searchParams;
+  if (context.role === "school") return <SchoolPilotWorkspace key={params.child ?? "documents"} demo={context.demo} section="documents" initialChild={params.child} />;
+  if (context.role === "family") return <ParentPortal demo={context.demo} view="documents" />;
   if (context.demo) return <DemoDocuments />;
   let documents: Array<{ id: string; child_id: string; title: string; category: string; created_at: string; access_scope: string; mime_type: string; created_by: string }> = [];
   let confirmations: Array<{ document_id: string; user_id: string }> = [];

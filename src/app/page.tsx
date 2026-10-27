@@ -2,6 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { BrandLogo } from "@/components/brand-logo";
 import { LanguageSelect } from "@/components/language-preference";
+import { PilotHome } from "@/components/pilot/pilot-home";
+import { SCHOOL_PARENT_PILOT } from "@/lib/pilot-config";
 
 const roles = [
   ["Families", "Tell your story once and keep every next step visible."],
@@ -17,6 +19,7 @@ const steps = [
 ];
 
 export default function Home() {
+  if (SCHOOL_PARENT_PILOT) return <PilotHome />;
   return (
     <main className="marketing-shell">
       <header className="marketing-header">

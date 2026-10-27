@@ -4,13 +4,14 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { isLocalDemoMode, isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { DEMO_WORKSPACE_COOKIE } from "@/lib/demo-workspace";
 
 const value = (formData: FormData, key: string) => String(formData.get(key) ?? "").trim();
 
 export async function createFirstCircle(formData: FormData) {
   if (!isSupabaseConfigured) {
     if (!isLocalDemoMode) redirect("/?error=configuration-required");
-    (await cookies()).set("joc_demo_role", "family", { path: "/", sameSite: "lax", maxAge: 31536000 });
+    (await cookies()).set(DEMO_WORKSPACE_COOKIE, "family", { path: "/", sameSite: "lax", maxAge: 31536000 });
     redirect("/children/demo-child?created=1");
   }
   const supabase = await createSupabaseServerClient();
@@ -39,7 +40,7 @@ export async function completeOrganisationOnboarding(formData: FormData) {
 
   if (!isSupabaseConfigured) {
     if (!isLocalDemoMode) redirect("/?error=configuration-required");
-    (await cookies()).set("joc_demo_role", role, { path: "/", sameSite: "lax", maxAge: 31536000 });
+    (await cookies()).set(DEMO_WORKSPACE_COOKIE, role, { path: "/", sameSite: "lax", maxAge: 31536000 });
     redirect("/dashboard");
   }
 

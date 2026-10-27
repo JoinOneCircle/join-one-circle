@@ -1,12 +1,13 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import Link from "next/link";
+import { usePilotLanguage } from "@/components/pilot/pilot-language";
+import { PreviewNote } from "@/components/pilot/pilot-ui";
 import { LanguageSelect } from "@/components/language-preference";
 import { updateDemoState, useDemoState } from "@/lib/demo-store";
 
 export function DemoAccountSettings() {
-  const state = useDemoState();
+  const state = useDemoState(); const { l } = usePilotLanguage();
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -21,6 +22,6 @@ export function DemoAccountSettings() {
   };
   return <>
     {error && <p className="form-alert" role="alert">{error}</p>}{message && <p className="notice" role="status">{message}</p>}
-    <section className="settings-grid demo-settings-grid"><article className="panel"><h2>Your profile</h2>{editing ? <form className="inline-edit" onSubmit={save}><label className="field">Name<input name="name" defaultValue={state.profile_name} maxLength={120} required autoFocus /></label><button className="button button--small" type="submit">Save</button><button className="quiet-button" type="button" onClick={() => setEditing(false)}>Cancel</button></form> : <div className="settings-row"><span>Name</span><strong>{state.profile_name}</strong><button type="button" onClick={() => setEditing(true)}>Edit</button></div>}<div className="settings-row"><span>Language</span><div className="settings-language"><LanguageSelect ariaLabel="Tool language" /></div></div></article><article className="panel"><h2>Privacy &amp; security</h2><p>Review changes, restore previous record versions, manage access and data.</p><Link className="button button--small" href="/privacy">Open privacy center</Link></article></section>
+    <section className="settings-grid demo-settings-grid"><article className="panel"><h2>Your profile</h2>{editing ? <form className="inline-edit" onSubmit={save}><label className="field">Name<input name="name" defaultValue={state.profile_name} maxLength={120} required autoFocus /></label><button className="button button--small" type="submit">Save</button><button className="quiet-button" type="button" onClick={() => setEditing(false)}>Cancel</button></form> : <div className="settings-row"><span>Name</span><strong>{state.profile_name}</strong><button type="button" onClick={() => setEditing(true)}>Edit</button></div>}<div className="settings-row"><span>Language</span><div className="settings-language"><LanguageSelect ariaLabel="Tool language" /></div></div></article><article className="panel" data-no-translate><h2>{l("Preview settings", "Configurações da prévia", "Configuración de la vista previa")}</h2><p>{l("Manage parent access inside each child record. Real password and account protection settings are available only when signed in to the secure service.", "Gerencie o acesso dos responsáveis dentro de cada ficha. Senha e proteção da conta real ficam disponíveis somente ao entrar no serviço seguro.", "Gestione el acceso de responsables en cada ficha. La contraseña y protección de cuentas reales están disponibles solo al iniciar sesión en el servicio seguro.")}</p><PreviewNote/></article></section>
   </>;
 }

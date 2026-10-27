@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { translateUi } from "@/lib/ui-translations";
+import { useContext, useEffect, useState } from "react";
+import { InterfaceLanguageContext } from "./interface-language-context";
+import { isKnownUiTranslation, translateUi } from "@/lib/ui-translations";
 
 export type SupportedLanguage = "en" | "pt" | "es";
 
@@ -49,8 +50,7 @@ function translateDocument(language: SupportedLanguage) {
     const current = element.textContent ?? "";
     if (!originalElementText.has(element)) originalElementText.set(element, current);
     const stored = originalElementText.get(element) ?? "";
-    const expected = translateString(stored.trim(), language);
-    if (current !== stored && current !== expected) originalElementText.set(element, current);
+    if (!isKnownUiTranslation(stored, current)) originalElementText.set(element, current);
     const source = originalElementText.get(element) ?? "";
     const translated = source.replace(source.trim(), translateString(source.trim(), language));
     if (current !== translated) element.textContent = translated;
@@ -61,6 +61,8 @@ function translateDocument(language: SupportedLanguage) {
     const parent = node.parentElement;
     if (parent && !originalElementText.has(parent) && !["SCRIPT", "STYLE", "NOSCRIPT"].includes(parent.tagName) && !parent.closest("[data-no-translate]")) {
       if (!originalText.has(node)) originalText.set(node, node.nodeValue ?? "");
+      const stored = originalText.get(node) ?? "";
+      if (!isKnownUiTranslation(stored, node.nodeValue ?? "")) originalText.set(node, node.nodeValue ?? "");
       const source = originalText.get(node) ?? "";
       const trimmed = source.trim();
       if (trimmed) node.nodeValue = source.replace(trimmed, translateString(trimmed, language));
@@ -77,8 +79,7 @@ function translateDocument(language: SupportedLanguage) {
       if (!saved.has(name)) saved.set(name, current);
       else {
         const stored = saved.get(name) ?? "";
-        const expected = translateString(stored, language);
-        if (current !== stored && current !== expected) saved.set(name, current);
+        if (!isKnownUiTranslation(stored, current)) saved.set(name, current);
       }
       const translated = translateString(saved.get(name) ?? "", language);
       if (current !== translated) element.setAttribute(name, translated);
@@ -93,20 +94,38 @@ export function LanguagePreference() {
     translateDocument(language);
     const sync = (event: Event) => translateDocument((event as CustomEvent<SupportedLanguage>).detail);
     const observer = new MutationObserver(() => translateDocument(supportedLanguage(localStorage.getItem(storageKey))));
+    // A streamed layout can arrive after a user changes language. Reconcile
+    // its stale html attribute with the user's saved choice, rather than
+    // leaving React copy, legacy copy and the select in different languages.
+    const reconcile = () => { const chosen = initialLanguage(); if (document.documentElement.lang !== chosen) { saveLanguage(chosen); translateDocument(chosen); } };
+    const languageObserver = new MutationObserver(reconcile);
+    languageObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
+    const crossTab = (event: StorageEvent) => {
+      if (event.key !== storageKey || !event.newValue || !["en", "pt", "es"].includes(event.newValue)) return;
+      if (localStorage.getItem(storageKey) !== event.newValue) return;
+      // Broadcast locally too: the React context and legacy shell must change
+      // together, not just the DOM text translated by the mutation observer.
+      saveLanguage(supportedLanguage(event.newValue));
+      translateDocument(supportedLanguage(event.newValue));
+    };
+    window.addEventListener("storage", crossTab);
+    window.addEventListener("focus", reconcile);
     window.addEventListener(eventName, sync);
     observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["placeholder", "aria-label", "title"] });
-    return () => { window.removeEventListener(eventName, sync); observer.disconnect(); };
+    return () => { window.removeEventListener(eventName, sync); window.removeEventListener("storage", crossTab); window.removeEventListener("focus", reconcile); observer.disconnect(); languageObserver.disconnect(); };
   }, []);
   return null;
 }
 
 export function LanguageSelect({ ariaLabel = "Language" }: { ariaLabel?: string }) {
-  const [language, setLanguage] = useState<SupportedLanguage>("en");
+  const initial = useContext(InterfaceLanguageContext);
+  const [language, setLanguage] = useState<SupportedLanguage>(initial);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const initial = initialLanguage();
     saveLanguage(initial);
-    const timer = window.setTimeout(() => setLanguage(initial), 0);
+    const timer = window.setTimeout(() => { setLanguage(initial); setReady(true); }, 0);
     const sync = (event: Event) => setLanguage((event as CustomEvent<SupportedLanguage>).detail);
     window.addEventListener(eventName, sync);
     return () => { window.clearTimeout(timer); window.removeEventListener(eventName, sync); };
@@ -125,7 +144,7 @@ export function LanguageSelect({ ariaLabel = "Language" }: { ariaLabel?: string 
     }).catch(() => undefined);
   };
 
-  return <select aria-label={ariaLabel} value={language} onChange={(event) => changeLanguage(supportedLanguage(event.target.value))}>
+  return <select aria-label={ariaLabel} disabled={!ready} value={language} onChange={(event) => changeLanguage(supportedLanguage(event.target.value))}>
     <option value="en">English</option>
     <option value="pt">Português</option>
     <option value="es">Español</option>

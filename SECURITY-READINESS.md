@@ -2,6 +2,12 @@
 
 This is a development checklist, not a certification or a statement that the platform is ready to hold real children's records. Keep real personal and SEND data out of the local demonstration.
 
+## Live verification checkpoint — 2026-10-26
+
+Supabase `frhrwuoktohxrjbtdutm` now has verified pilot schema through 0027 (0022–0025 pre-existing; 0026/0027 applied this session). Thirty-three transactional deployed database assertions passed with rollback. Separate actual Auth/browser/Storage tests covered school upload/download integrity, wrong-email and replayed invitations, independent parent whitelists, signed-document preservation, updates, individual revocation and QA-organisation suspension. Anonymous access and parent direct attachment download were denied. The QA organisation is suspended. No real school access was expanded and no paid service or deployment was initiated.
+
+These checks do not prove SMTP delivery, all staff/cross-school browser combinations, malware safety, backup recovery, production-host behaviour, or certification. SMTP remains disabled. The current Netlify production build was not updated. Remaining release gates below still apply; the historical milestones are not instructions to rerun already-applied migrations.
+
 ## Current boundaries
 
 - Without Supabase, the development-only demonstration stores sample metadata in this browser's `localStorage` and sample files in IndexedDB. It has no sign-in or cross-device access. Do not enter actual names, e-mail addresses, reports or health data. Leaving the demo does not erase browser storage.
@@ -10,6 +16,8 @@ This is a development checklist, not a certification or a statement that the pla
 - Circle AI must not be given an API key for live use until the connected Supabase environment, access policies, consent/retention rules and rate limiting are verified.
 
 ## Release gates before any real child data
+
+For the school/parent pilot, apply and verify pending migrations through **0027**, not just the historical 0012 milestone below. Local PostgreSQL tests cover the RLS/RPC lifecycle, canonical review-date integrity, exact same-child published-version reminder references, atomic invitation replacement, drawn-signature integrity and bounded repeated-item tables, but do not replace deployed Supabase/PostgREST/Storage/Auth testing. Leave AI disabled. Validate parent projections and PDF route denial using independent real test accounts, including revocation and organisation suspension. Signed versions include the school drawing in their content hash and immutable snapshot; they are not independently certified digital signatures. Parents have no download/print controls, but screenshots and copying of visible content cannot be technically guaranteed away. Uploaded attachments remain school-only in this pilot; a malware-scanning process is still a release gate.
 
 1. Set `NEXT_PUBLIC_SITE_URL` to the exact HTTPS production origin. Do not use a request's `Origin`/`Host` header to form confirmation or password-reset links. Configure the same approved redirects in Supabase Auth.
 2. Run migrations `0001` through `0012` in a disposable Supabase project first. Review the SQL Editor result, function grants and RLS policies; then repeat in the client-owned project. A migration file existing in the repository does not mean it ran.
@@ -23,6 +31,6 @@ This is a development checklist, not a certification or a statement that the pla
 ## Known limitations to resolve
 
 - A local demo is deliberately not an authenticated privacy boundary. Its browser storage persists until removed by the browser/user.
-- No connected Supabase project or test identities are included in this checkout, so RLS/Storage behavior cannot be proved here by code review or TypeScript tests alone.
+- Code review/TypeScript alone do not prove RLS/Storage behavior. The live checkpoint above records the explicitly exercised remote scenarios; no privileged Supabase key or QA password is included in this checkout.
 - The Supabase migrations must be independently tested before deployment. In particular, verify pending document uploads against metadata RLS, record-version restore behavior, invitation acceptance, institutional verification status, CSV import permissions and persistent AI rate limiting.
 - The current CSP still permits inline scripts/styles for compatibility with the Next runtime. Replace with a nonce-based policy and retest before a formal security assessment.

@@ -89,6 +89,7 @@ export default async function WorkspaceModule({ params, searchParams }: { params
   const view = modules[moduleId];
   if (!view) notFound();
   const context = await getPlatformContext();
+  if (context.role === "school" && moduleId === "plans") redirect("/learning-plans");
   const allowedRoles: Record<string, ViewerRole[]> = {
     "send-register": ["school"], plans: ["school"], "ehcp-tracker": ["school"], provision: ["school"], reviews: ["school"], team: ["school"],
     caseload: ["professional"], requests: ["professional"], cases: ["local_authority"], consultations: ["local_authority"], deadlines: ["local_authority"], decisions: ["local_authority"],

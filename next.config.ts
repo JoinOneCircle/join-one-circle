@@ -27,6 +27,7 @@ const supabaseOrigin = (() => {
     return "";
   }
 })();
+const supabaseWebSocketOrigin = supabaseOrigin.replace(/^https:/, "wss:").replace(/^http:/, "ws:");
 
 const contentSecurityPolicy = [
   "default-src 'self'",
@@ -38,7 +39,7 @@ const contentSecurityPolicy = [
   "font-src 'self' data:",
   "style-src 'self' 'unsafe-inline'",
   `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""}`,
-  `connect-src 'self'${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`,
+  `connect-src 'self'${supabaseOrigin ? ` ${supabaseOrigin} ${supabaseWebSocketOrigin}` : ""}`,
   "frame-src 'none'",
 ]
   .join("; ")
@@ -63,6 +64,7 @@ const securityHeaders = [
 const privateResponseHeaders = [{ key: "Cache-Control", value: "private, no-store, max-age=0" }];
 
 const nextConfig: NextConfig = {
+  outputFileTracingIncludes: { "/api/pilot/plans/*/pdf": ["src/fonts/Poppins-Regular.ttf", "src/fonts/Poppins-SemiBold.ttf"] },
   // Document uploads are handled by the reviewed Server Action in
   // /documents/actions.ts. The action itself rejects files over 25 MB and
   // disallowed MIME types; this slightly higher transport limit accounts for
@@ -94,6 +96,7 @@ const nextConfig: NextConfig = {
         "/invite/:path*", "/auth/:path*", "/api/:path*",
         "/login/:path*", "/signup/:path*", "/forgot-password/:path*",
         "/reset-password/:path*", "/onboarding/:path*",
+        "/templates/:path*", "/learning-plans/:path*", "/parent-access/:path*", "/parent/:path*",
       ].map((source) => ({ source, headers: privateResponseHeaders })),
     ];
   },

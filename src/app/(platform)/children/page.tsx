@@ -3,12 +3,16 @@ import { getPlatformContext } from "@/lib/platform-data";
 import { createChild } from "./actions";
 import { DemoChildren } from "./demo-children";
 import { OpenDetailsButton } from "@/components/open-details-button";
+import { SchoolPilotWorkspace } from "@/components/pilot/school-workspace";
+import { ParentPortal } from "@/components/pilot/parent-portal";
 
-export default async function ChildrenPage({ searchParams }: { searchParams: Promise<{ error?: string; message?: string }> }) {
+export default async function ChildrenPage({ searchParams }: { searchParams: Promise<{ error?: string; message?: string; child?: string; tab?: string; new?: string; plan?: string; newDocument?: string }> }) {
   const context = await getPlatformContext();
-  if (context.demo) return <DemoChildren />;
   const query = await searchParams;
-  const isFamily = context.role === "family";
+  if (context.role === "school") return <SchoolPilotWorkspace key={`${query.child ?? "children"}-${query.tab ?? "details"}-${query.new ?? ""}-${query.plan ?? ""}-${query.newDocument ?? ""}`} demo={context.demo} section="children" initialChild={query.child} initialTab={query.tab} initialNew={query.new === "1"} initialPlan={query.plan} initialCreateDocument={query.newDocument === "1"} />;
+  if (context.role === "family") return <ParentPortal demo={context.demo} view="profile" />;
+  if (context.demo) return <DemoChildren />;
+  const isFamily = String(context.role) === "family";
   const canCreateChild = isFamily && !context.demo;
   return <>
     <header className="workspace-header"><div><p className="eyebrow">AUTHORISED RECORDS</p><h1>{isFamily ? "Your children" : "Children you can access"}</h1><p>Each record is separate. You only see a child after the circle grants access.</p></div>{canCreateChild && <OpenDetailsButton targetId="add-child">+ Add child</OpenDetailsButton>}</header>

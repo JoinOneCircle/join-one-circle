@@ -1,8 +1,10 @@
 import { CircleAiChat } from "./circle-ai-chat";
 import { getPlatformContext } from "@/lib/platform-data";
+import { redirect } from "next/navigation";
 
 export default async function CircleAiPage({ searchParams }: { searchParams: Promise<{ child?: string }> }) {
   const context = await getPlatformContext();
+  if (context.role === "school" || context.role === "family") redirect("/dashboard");
   const requestedChildId = (await searchParams).child;
   const authorisedChild = context.children.find((child) => child.id === requestedChildId) ?? context.children[0] ?? { id: "demo-child", preferred_name: "Authorised child" };
   // Demo records live in the browser, so the client component validates the

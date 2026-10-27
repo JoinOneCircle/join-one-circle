@@ -1,3 +1,4 @@
+import { ChildPicker } from "@/components/child-picker";
 import Link from "next/link";
 import { getPlatformContext } from "@/lib/platform-data";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -29,7 +30,7 @@ export default async function ActionsPage({ searchParams }: { searchParams: Prom
     {params.message && <p className="form-message" role="status">Action saved.</p>}
     <form className="panel quick-create" action={createAction}>
       <label className="field">Action title<input name="title" required maxLength={200} placeholder="What needs to happen?" /></label>
-      <label className="field">Child<select name="child_id" required defaultValue=""><option value="" disabled>Choose a child</option>{context.children.map((child) => <option key={child.id} value={child.id}>{child.preferred_name}</option>)}</select></label>
+      <ChildPicker className="field" name="child_id" defaultValue="" required options={(context.children.map((child) => ({ value: child.id, label: child.preferred_name })) ?? [])} />
       <label className="field">Due date<input name="due_date" type="date" /></label>
       <label className="field action-description">Details<input name="description" maxLength={2000} placeholder="Optional context" /></label>
       <button className="button button--small" type="submit" disabled={!context.children.length}>Save action</button>

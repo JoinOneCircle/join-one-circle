@@ -11,36 +11,42 @@ function text(formData: FormData, key: string) {
 }
 
 function authRedirect(path: string, key: "error" | "message", message: string): never {
-  redirect(`${path}?${key}=${encodeURIComponent(message)}`);
+  const url = new URL(path, "https://join-one-circle.invalid");
+  url.searchParams.set(key, message);
+  redirect(`${url.pathname}${url.search}`);
 }
 
 export async function signIn(formData: FormData) {
   const next = safeInternalPath(text(formData, "next"));
+  const loginPath = `/login?next=${encodeURIComponent(next)}`;
   if (!isSupabaseConfigured) {
-    if (isLocalDemoMode) redirect(`${next}?demo=1`);
-    authRedirect("/login", "error", "The secure service is not configured yet.");
+    if (isLocalDemoMode) { const target = new URL(next, "http://localhost"); target.searchParams.set("demo", "1"); redirect(`${target.pathname}${target.search}`); }
+    authRedirect(loginPath, "error", "The secure service is not configured yet.");
   }
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase!.auth.signInWithPassword({ email: text(formData, "email"), password: text(formData, "password") });
   if (error?.message.toLowerCase().includes("email not confirmed")) {
-    authRedirect("/login", "error", "Confirm your email first. Open the secure link we sent when you created your account.");
+    authRedirect(loginPath, "error", "Confirm your email first. Open the secure link we sent when you created your account.");
   }
-  if (error) authRedirect("/login", "error", "We could not sign you in. Check your email and password and try again.");
+  if (error) authRedirect(loginPath, "error", "We could not sign you in. Check your email and password and try again.");
   redirect(`/mfa?next=${encodeURIComponent(next)}`);
 }
 
 export async function signUp(formData: FormData) {
+  const requestedNext = text(formData, "next");
+  const next = requestedNext.startsWith("/invite/") ? safeInternalPath(requestedNext, "/onboarding") : "/onboarding";
+  const signupPath = `/signup?next=${encodeURIComponent(next)}`;
   const name = text(formData, "name");
   const email = text(formData, "email");
   const password = text(formData, "password");
   const confirmPassword = text(formData, "confirm_password");
   const intendedRole = text(formData, "intended_role");
-  if (name.length < 2 || name.length > 120) authRedirect("/signup", "error", "Enter your full name.");
-  if (!/^\S+@\S+\.\S+$/.test(email)) authRedirect("/signup", "error", "Enter a valid email address.");
-  if (password.length < 8) authRedirect("/signup", "error", "Use at least 8 characters for your password.");
-  if (password !== confirmPassword) authRedirect("/signup", "error", "The passwords do not match.");
-  if (!["family", "school", "professional", "local_authority"].includes(intendedRole)) authRedirect("/signup", "error", "Choose how you will use Join One Circle.");
-  if (formData.get("privacy_consent") !== "on") authRedirect("/signup", "error", "Accept the privacy notice to continue.");
+  if (name.length < 2 || name.length > 120) authRedirect(signupPath, "error", "Enter your full name.");
+  if (!/^\S+@\S+\.\S+$/.test(email)) authRedirect(signupPath, "error", "Enter a valid email address.");
+  if (password.length < 8) authRedirect(signupPath, "error", "Use at least 8 characters for your password.");
+  if (password !== confirmPassword) authRedirect(signupPath, "error", "The passwords do not match.");
+  if (!["family", "school"].includes(intendedRole)) authRedirect(signupPath, "error", "Choose how you will use Join One Circle.");
+  if (formData.get("privacy_consent") !== "on") authRedirect(signupPath, "error", "Accept the privacy notice to continue.");
   if (!isSupabaseConfigured) {
     if (isLocalDemoMode) redirect("/onboarding?demo=1");
     authRedirect("/signup", "error", "The secure service is not configured yet.");
@@ -55,13 +61,13 @@ export async function signUp(formData: FormData) {
     email,
     password,
     options: {
-      emailRedirectTo: `${origin}/auth/callback?next=/onboarding`,
+      emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
       data: { display_name: name, preferred_language: language, intended_role: intendedRole },
     },
   });
-  if (error) authRedirect("/signup", "error", "We could not create your account. Check the details and try again.");
-  if (data.session) redirect("/onboarding");
-  redirect(`/login?message=${encodeURIComponent("We sent a secure confirmation link. Check your email to continue.")}`);
+  if (error) authRedirect(signupPath, "error", "We could not create your account. Check the details and try again.");
+  if (data.session) redirect(next);
+  redirect(`/login?next=${encodeURIComponent(next)}&message=${encodeURIComponent("We sent a secure confirmation link. Check your email to continue.")}`);
 }
 
 export async function signOut() {
@@ -83,14 +89,16 @@ export async function requestPasswordReset(formData: FormData) {
 }
 
 export async function resendConfirmation(formData: FormData) {
+  const next = safeInternalPath(text(formData, "next"), "/onboarding");
+  const loginPath = `/login?next=${encodeURIComponent(next)}`;
   const email = text(formData, "email");
-  if (!/^\S+@\S+\.\S+$/.test(email)) authRedirect("/login", "error", "Enter a valid email address.");
-  if (!isSupabaseConfigured) authRedirect("/login", "error", "The secure service is not configured yet.");
+  if (!/^\S+@\S+\.\S+$/.test(email)) authRedirect(loginPath, "error", "Enter a valid email address.");
+  if (!isSupabaseConfigured) authRedirect(loginPath, "error", "The secure service is not configured yet.");
   const requestHeaders = await headers();
   const origin = configuredSiteOrigin(process.env.NEXT_PUBLIC_SITE_URL, process.env.NODE_ENV, requestHeaders.get("origin"));
   const supabase = await createSupabaseServerClient();
-  await supabase!.auth.resend({ type: "signup", email, options: { emailRedirectTo: `${origin}/auth/callback?next=/onboarding` } });
-  redirect(`/login?message=${encodeURIComponent("If this account needs confirmation, we sent a new secure link. Check your email.")}`);
+  await supabase!.auth.resend({ type: "signup", email, options: { emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}` } });
+  authRedirect(loginPath, "message", "If this account needs confirmation, we sent a new secure link. Check your email.");
 }
 
 export async function updatePassword(formData: FormData) {

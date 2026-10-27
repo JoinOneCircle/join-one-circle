@@ -21,6 +21,6 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <div className="form-link-row"><span className="field-hint">Your session is protected on this device.</span><Link href="/forgot-password">Forgot password?</Link></div>
       <button className="button auth-submit" type="submit">Sign in securely</button>
     </form>
-    <p className="auth-switch">New to Join One Circle? <Link href="/signup">Create an account</Link></p>
+    <p className="auth-switch">New to Join One Circle? <Link href={`/signup?next=${encodeURIComponent(safeInternalPath(query.next))}`}>Create an account</Link></p>
   </AuthShell>;
 }

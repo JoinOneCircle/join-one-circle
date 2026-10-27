@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AppIcon, type AppIconName } from "@/components/app-icon";
 import { completeOrganisationOnboarding, createFirstCircle, requestLocalAuthorityActivation } from "./actions";
 import { demoId, updateDemoState } from "@/lib/demo-store";
+import { DEMO_WORKSPACE_COOKIE } from "@/lib/demo-workspace";
 
 type Role = "family" | "school" | "professional" | "local_authority";
 
@@ -19,7 +20,9 @@ export function OnboardingFlow({ error, message, demo = false, initialRole }: { 
   const [role, setRole] = useState<Role | null>(initialRole ?? null);
   const [demoError, setDemoError] = useState("");
   const router = useRouter();
-  const rememberRole = (selectedRole: Role) => { document.cookie = `joc_demo_role=${selectedRole}; path=/; max-age=31536000; samesite=lax`; };
+  const rememberRole = (selectedRole: Role) => {
+    if (demo) document.cookie = `${DEMO_WORKSPACE_COOKIE}=${selectedRole}; path=/; max-age=31536000; samesite=lax`;
+  };
   const createDemoCircle = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);

@@ -6,6 +6,7 @@ import { ConfirmDeleteForm } from "@/components/confirm-delete-form";
 import { LocalizedDate } from "@/components/localized-date";
 import { RecordItemActions } from "./record-item-actions";
 import { RecordUpdateForm } from "./record-update-form";
+import { redirect } from "next/navigation";
 
 const sections = [
   ["Passport", "Who the child is, how they communicate and what matters to them.", "passport"],
@@ -32,6 +33,9 @@ const itemAttachment = (body: unknown) => {
 export default async function ChildRecord({ params, searchParams }: { params: Promise<{ childId: string }>; searchParams: Promise<{ area?: string; error?: string; message?: string }> }) {
   const { childId } = await params;
   const query = await searchParams;
+  const context = await getPlatformContext();
+  if (context.role === "school") redirect(`/children?child=${encodeURIComponent(childId)}`);
+  if (context.role === "family") redirect("/parent");
   if ((await getPlatformContext()).demo) return <DemoChildRecord childId={childId} area={query.area} />;
   const { child, items, access } = await getChildRecord(childId);
   const canReadArea = (area: string) => access.canManage || access.readAreas.includes(area) || access.contributeAreas.includes(area);

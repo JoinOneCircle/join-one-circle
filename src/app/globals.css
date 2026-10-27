@@ -132,6 +132,9 @@ button, summary { -webkit-tap-highlight-color: transparent; }
 .auth-proof span { padding: 9px 12px; border: 1px solid rgba(255,255,255,.25); border-radius: 100px; color: #e1eee4; font-size: 12px; }
 .auth-card-wrap { padding: 55px 9vw; display: grid; place-items: center; }
 .auth-card { width: min(100%,520px); }
+.auth-language{display:flex;justify-content:flex-end;margin-bottom:24px}.auth-language .language-picker{max-width:150px}.auth-switch .auth-back{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-weight:600}
+.auth-language select,.header-actions>select{min-height:40px;border:1px solid var(--line);border-radius:12px;background:white;color:var(--ink);padding:8px 12px;font-size:12px;max-width:150px}
+@media(max-width:600px){.marketing-header .header-actions>.button{display:none}.marketing-header .header-actions>select{max-width:95px;font-size:11px;padding:6px;min-height:34px}}
 .auth-card h2 { margin: 0 0 8px; font-size: 38px; letter-spacing: -.04em; }
 .auth-card > p { color: var(--muted); margin-bottom: 30px; line-height: 1.5; }
 .auth-form { display: grid; gap: 18px; }

@@ -4,13 +4,19 @@ import { getPlatformContext } from "@/lib/platform-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { CalendarCreateForm, type EventParticipantCandidate } from "./calendar-create-form";
 import { cancelChildEvent, respondToChildEvent } from "./actions";
+import { DemoCalendar } from "./demo-calendar";
+import { ParentPortal } from "@/components/pilot/parent-portal";
+import { SchoolPilotCalendar } from "@/components/pilot/school-calendar";
 
 type ChildEvent = { id: string; child_id: string; title: string; description: string; starts_at: string; ends_at: string | null; status: "scheduled" | "cancelled"; created_by: string };
 type EventParticipant = { event_id: string; user_id: string; response: "pending" | "accepted" | "declined" };
 type CandidateRow = { user_id: string; display_name: string; role: string; is_access_admin: boolean };
 
-export default async function CalendarPage({ searchParams }: { searchParams: Promise<{ error?: string; message?: string }> }) {
+export default async function CalendarPage({ searchParams }: { searchParams: Promise<{ error?: string; message?: string; child?: string }> }) {
   const context = await getPlatformContext();
+  if (context.role === "school") return <SchoolPilotCalendar key={(await searchParams).child ?? "calendar"} demo={context.demo} initialChild={(await searchParams).child} />;
+  if (context.role === "family") return <ParentPortal demo={context.demo} view="calendar" />;
+  if (context.demo) return <DemoCalendar />;
   const query = await searchParams;
   const supabase = await createSupabaseServerClient();
   const { data: auth } = await supabase!.auth.getUser();

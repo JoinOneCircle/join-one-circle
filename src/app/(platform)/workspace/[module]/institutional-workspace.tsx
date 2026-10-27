@@ -1,3 +1,4 @@
+import { ChildPicker } from "@/components/child-picker";
 import Link from "next/link";
 import { AppIcon, type AppIconName } from "@/components/app-icon";
 import { ConfirmDeleteForm } from "@/components/confirm-delete-form";
@@ -77,7 +78,7 @@ export function InstitutionalWorkspace({ moduleId, title, icon, childList, share
       <div><p className="eyebrow">CONNECTED WORKSPACE</p><h2>{moduleVerb[moduleId]}</h2><p>This creates an operational {moduleNoun[moduleId]} linked to the authorised child record. The record remains the source of truth.</p></div>
       <form action={createInstitutionalWorkspaceItem}>
         <input type="hidden" name="module_id" value={moduleId} />
-        <label>Child<select name="child_id" required defaultValue="" disabled={!contributableChildren.length}><option value="" disabled>{contributableChildren.length ? "Choose a child you can contribute to" : "No contribution permission for a shared child"}</option>{contributableChildren.map((child) => <option key={child.id} value={child.id}>{child.preferred_name}</option>)}</select></label>
+        <ChildPicker name="child_id" defaultValue="" disabled={!contributableChildren.length} required emptyLabel={contributableChildren.length ? "Choose a child you can contribute to" : "No contribution permission for a shared child"} options={(contributableChildren.map((child) => ({ value: child.id, label: child.preferred_name })) ?? [])} />
         <label>{moduleId === "plans" ? "Plan title" : moduleId === "cases" ? "Case title" : "Title"}<input name="title" required maxLength={200} placeholder={moduleId === "send-register" ? "e.g. SEN support review" : moduleId === "plans" ? "e.g. Autumn APDR cycle" : "What needs to be coordinated?"} /></label>
         <label>Summary<textarea name="summary" maxLength={2000} rows={3} placeholder="A clear next step, without duplicating the child record." /></label>
         <label>Review or due date<input type="date" name="due_on" /></label>
