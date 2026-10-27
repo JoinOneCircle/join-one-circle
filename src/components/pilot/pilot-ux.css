@@ -72,6 +72,9 @@
 .ux-signature-pad > svg { display:block; width:100%; aspect-ratio:10/3; background:#fff; border:1px solid #cbdace; border-radius:16px; touch-action:none; cursor:crosshair; user-select:none; }
 .ux-signature-pad .pilot-toolbar { flex-wrap:wrap; }
 .ux-signature-pad .pilot-toolbar small { margin-right:auto; }
+
+/* The free host's floating badge must not cover the sticky save action. */
+body:has(#nl-badge-frame) .ux-savebar { bottom:80px; }
 .ux-signature-drawing { display:block; width:100%; max-width:350px; height:auto; margin:12px 0; }
 .ux-plan-table { display:grid; gap:14px; min-width:0; }
 .ux-table-row { min-width:0; border:1px solid #dce6dc; border-radius:16px; padding:16px; background:#fafcf9; }

@@ -1,6 +1,7 @@
 import "server-only";
 import { createSupabaseServerClient } from "./supabase/server";
 import type { PilotData, PilotRecipient } from "./pilot-model";
+import { parentContactForShare, parentInvitationRepresented } from "./pilot-recipient-links";
 
 export async function loadPilotSchool(): Promise<PilotData> {
   const db = await createSupabaseServerClient();
@@ -18,11 +19,11 @@ export async function loadPilotSchool(): Promise<PilotData> {
   const ownMembers = (members.data ?? []) as { child_id: string; user_id: string; display_name: string; status: string; role: string }[];
   const recipients: PilotRecipient[] = (shares.data ?? []).map((share) => {
     const member = ownMembers.find((row) => row.child_id === share.child_id && row.user_id === share.user_id);
-    const contact = (invitations.data ?? []).find((i) => i.child_id === share.child_id && i.accepted_by === share.user_id && i.recipient_role === "parent" && i.status === "accepted");
+    const contact = parentContactForShare(share, invitations.data ?? []);
     return { ...share, contact_name: contact?.contact_name, relationship: contact?.relationship, recipient_label: contact?.recipient_label, display_name: contact?.contact_name || member?.display_name || "Parent / carer", recipient_role: "parent", status: member?.status ?? "revoked" };
   });
   for (const invite of invitations.data ?? []) {
-    if (invite.status === "accepted" && invite.recipient_role === "parent") continue;
+    if (parentInvitationRepresented(invite, shares.data ?? [])) continue;
     const member = ownMembers.find((row) => row.child_id === invite.child_id && row.user_id === invite.accepted_by);
     recipients.push({ ...invite, user_id: invite.accepted_by, display_name: invite.contact_name || member?.display_name || invite.recipient_label, status: invite.status === "pending" && Date.parse(invite.expires_at) < Date.now() ? "expired" : member?.status ?? invite.status });
   }

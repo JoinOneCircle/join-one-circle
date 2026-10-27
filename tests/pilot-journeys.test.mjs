@@ -11,6 +11,11 @@ test("accounts awaiting or losing access can sign out from onboarding without cr
   assert.match(page, /type="submit">Sign out<\/button>/);
 });
 
+test("the free host badge cannot overlap the sticky save bar", () => {
+  const css = readFileSync(new URL("../src/components/pilot/pilot-ux.css", import.meta.url), "utf8");
+  assert.match(css, /body:has\(#nl-badge-frame\) \.ux-savebar\s*\{\s*bottom:80px;/);
+});
+
 test("school next steps follow prerequisites and prioritise signing/publication in the right record", () => {
   const data = initialPilotDemo(); data.pupils = [];
   assert.equal(schoolNextActions(data)[0].kind,"add-child");

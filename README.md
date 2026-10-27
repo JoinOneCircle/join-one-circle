@@ -2,6 +2,16 @@
 
 Nova plataforma SEND, construída de forma independente do Little Steps.
 
+## Publicação controlada do piloto — 27/10/2026
+
+Publicado na conta gratuita existente da Netlify em `https://joinonecircle.netlify.app`, com Supabase conectado e IA desativada. A primeira versão publicada desta rodada é o commit `d415b15` (deploy `6ae0f99ade851cc9227fde97`). O domínio próprio continua pendente de DNS/certificado; não foi comprado serviço nem alterado o DNS. O endereço de convite e o callback autorizados permanecem no HTTPS da Netlify.
+
+Testes no endereço online, com três identidades Auth novas e uma escola/criança exclusivamente fictícias: login escolar, ficha com dados estruturados, construtor de modelo, pré-preenchimento, desenho de assinatura, bloqueio e publicação, download e inspeção visual do PDF, upload privado de PNG de 2,25 MB, evento no horário de Londres, convites individuais e botão de copiar, aceite correto, rejeição de e-mail errado e de repetição, lista de aceites para a escola e revogação pela interface. O responsável A leu somente os dois campos, o documento e o evento escolhidos; B leu apenas o nome. A atualização da ficha apareceu na projeção de A sem alterar o texto original ou a assinatura do documento. As URLs diretas de anexo/PDF escolar e a API escolar foram negadas ao responsável B. Páginas privadas sem sessão redirecionaram ao login. O convite foi conferido em EN/PT/ES.
+
+O aviso flutuante da hospedagem gratuita podia sobrepor a barra fixa de salvar; o CSS reserva espaço quando esse aviso existe, sem removê-lo nem alterar o layout local. A lista escolar também consolida o vínculo e o convite aceito/revogado da mesma pessoa e criança, preservando o nome informado pela escola, sem mudar permissões. A suíte local passa a 70 testes (69 aprovados; a integração opcional de projeto descartável permanece omitida).
+
+Este registro não afirma cobertura de todas as combinações de navegador, volume ou tipos de arquivo. O PDF e todos os dados usados são fictícios; não foram enviados convites a pessoas reais. Confirmação/recuperação por caixa de e-mail, backups/restauração, retenção, tratamento de arquivos maliciosos, política de MFA e revisão de privacidade/segurança continuam separados da publicação para testes. Não usar o piloto para dados reais de crianças antes dessa liberação operacional.
+
 ## Piloto escola e pais — implementação atual (26/10/2026)
 
 ### Validação nas contas atuais — 26/10/2026
