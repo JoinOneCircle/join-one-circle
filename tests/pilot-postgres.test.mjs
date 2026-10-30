@@ -235,4 +235,28 @@ test("school → template → signed immutable version → scoped parent → rev
   await db.exec("update pilot_admission_settings set school_enrolment_open=true");
   const deployedAdmission = await db.exec(readFileSync(new URL("./pilot-admission-deployed-transaction.sql", import.meta.url), "utf8"));
   assert.match(deployedAdmission.at(-1).rows[0].qa_result, /PASS: 14/);
+
+  // Feedback is account-scoped, not school-scoped and never an access grant.
+  await db.exec(readFileSync(new URL("0029_pilot_feedback.sql",folder),"utf8"));
+  const feedback = { role:"parent", areas:["templates","signature"], result:"completed", ease:4, kind:"general", summary:"Fictitious QA response", details:"This is synthetic feedback with no personal child data.", steps:"", expected:"", allow_contact:false, privacy_confirmed:true };
+  const feedbackRequest=randomUUID();
+  const receipt=await scalar(parentUser,"select submit_pilot_feedback($1,$2) as value",[JSON.stringify(feedback),feedbackRequest]);
+  assert.ok(receipt);
+  assert.equal(await scalar(parentUser,"select submit_pilot_feedback($1,$2) as value",[JSON.stringify(feedback),feedbackRequest]),receipt);
+  assert.equal((await as(parentUser,"select reply_email from pilot_feedback where id=$1",[receipt])).rows[0].reply_email,null);
+  assert.equal((await as(stranger,"select * from pilot_feedback where id=$1",[receipt])).rows.length,0);
+  assert.equal((await scalar(parentUser,"select pilot_parent_view() as value")).length,0);
+  await assert.rejects(as(parentUser,"update pilot_feedback set answers='{}' where id=$1",[receipt]),/permission/i);
+  await assert.rejects(as(parentUser,"select submit_pilot_feedback($1,$2)",[JSON.stringify({...feedback,summary:"Changed request payload"}),feedbackRequest]),/already used/i);
+  await assert.rejects(as(parentUser,"select submit_pilot_feedback($1,$2)",[JSON.stringify({...feedback,privacy_confirmed:false}),randomUUID()]),/invalid/i);
+  await assert.rejects(as(parentUser,"select submit_pilot_feedback($1,$2)",[JSON.stringify({...feedback,submitted_by:stranger}),randomUUID()]),/invalid/i);
+  await assert.rejects(as(unconfirmed,"select submit_pilot_feedback($1,$2)",[JSON.stringify(feedback),randomUUID()]),/confirmed email/i);
+  await db.exec("set role anon");
+  await assert.rejects(db.query("select submit_pilot_feedback($1,$2)",[JSON.stringify(feedback),randomUUID()]),/permission/i);
+  await db.exec("reset role");
+  const contactReceipt=await scalar(parentUser,"select submit_pilot_feedback($1,$2) as value",[JSON.stringify({...feedback,allow_contact:true}),randomUUID()]);
+  assert.equal((await as(parentUser,"select reply_email from pilot_feedback where id=$1",[contactReceipt])).rows[0].reply_email,"parent@example.test");
+  await scalar(parentUser,"select submit_pilot_feedback($1,$2) as value",[JSON.stringify(feedback),randomUUID()]);
+  await assert.rejects(as(parentUser,"select submit_pilot_feedback($1,$2)",[JSON.stringify(feedback),randomUUID()]),/rate limit/i);
+  assert.equal(await scalar(parentUser,"select submit_pilot_feedback($1,$2) as value",[JSON.stringify(feedback),feedbackRequest]),receipt,"retry works even after quota, without duplication");
 });

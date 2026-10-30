@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isLocalDemoMode, isSupabaseConfigured, supabaseAnonKey, supabaseUrl } from "@/lib/supabase/config";
 
-const publicPaths = ["/", "/login", "/signup", "/forgot-password", "/auth/callback"];
+const publicPaths = ["/", "/login", "/signup", "/forgot-password", "/auth/callback", "/feedback", "/api/feedback"];
 
 export async function proxy(request: NextRequest) {
   if (!isSupabaseConfigured) {

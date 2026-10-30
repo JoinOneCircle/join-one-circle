@@ -40,8 +40,9 @@ export const secondaryNavigation: Record<ViewerRole, PlatformNavItem[]> = {
   school: [
     { icon: "circle", label: "Parent sharing", href: "/parent-access" },
     { icon: "view", label: "Parent view", href: "/parent" },
+    { icon: "mail", label: "Pilot feedback", href: "/feedback" },
   ],
-  family: [],
+  family: [{ icon: "mail", label: "Pilot feedback", href: "/feedback" }],
   professional: [
     { icon: "requests", label: "Requests", href: "/workspace/requests" },
     { icon: "actions", label: "Actions", href: "/actions" },

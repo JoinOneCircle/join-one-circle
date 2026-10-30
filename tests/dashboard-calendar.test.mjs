@@ -44,7 +44,8 @@ test("switching languages retains the source and still detects changed copy", ()
 
 test("new school navigation does not reintroduce the legacy SEND menu", () => {
   assert.deepEqual(primaryNavigation.school.map((item) => item.label), ["Overview", "Children", "Templates", "Learning plans", "Documents", "Calendar"]);
-  assert.deepEqual(secondaryNavigation.school.map((item) => item.href), ["/parent-access", "/parent"]);
+  assert.deepEqual(secondaryNavigation.school.map((item) => item.href), ["/parent-access", "/parent", "/feedback"]);
+  assert.deepEqual(secondaryNavigation.family.map((item) => item.href), ["/feedback"]);
   assert.equal(new Set(primaryNavigation.school.map((item) => item.icon)).size, 6);
   assert.ok(primaryNavigation.school.slice(0, 4).some((item) => item.href === "/templates"), "Templates must remain visible in the four mobile shortcuts");
   const schoolLinks = [...primaryNavigation.school, ...secondaryNavigation.school].map((item) => item.href);

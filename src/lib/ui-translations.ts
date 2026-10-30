@@ -3,6 +3,7 @@ type Table = Record<string, string>;
 type SupportedLanguage = "en" | "pt" | "es";
 export const uiTranslations: Record<Exclude<SupportedLanguage, "en">, Table> = {
   pt: {
+    "Pilot feedback": "Feedback do piloto",
     "School and family, connected.": "Escola e família, conectadas.",
     "The school manages the record. Parents read only the information the school chooses to share.": "A escola gerencia a ficha. Os responsáveis leem apenas as informações que a escola escolhe compartilhar.",
     "Parents need a school invitation before any child information becomes available.": "Os responsáveis precisam de um convite da escola para acessar informações da criança.",
@@ -56,6 +57,7 @@ export const uiTranslations: Record<Exclude<SupportedLanguage, "en">, Table> = {
     "Manage your details, language and account protection.": "Gerencie seus dados, idioma e proteção da conta.", "Your profile": "Seu perfil", "Name": "Nome", "Edit": "Editar", "Save": "Salvar", "Cancel": "Cancelar", "Tool language": "Idioma da ferramenta", "Managed securely by your account": "Gerenciada com segurança pela sua conta", "Change": "Alterar", "Multi-factor authentication": "Autenticação de dois fatores", "Required before live launch": "Obrigatória antes do lançamento", "Enabled through the connected Supabase account.": "Ativada pela conta Supabase conectada.", "End your secure session on this device.": "Encerre sua sessão segura neste dispositivo.",
   },
   es: {
+    "Pilot feedback": "Comentarios del piloto",
     "School and family, connected.": "Escuela y familia, conectadas.",
     "The school manages the record. Parents read only the information the school chooses to share.": "La escuela gestiona la ficha. Los responsables leen solo la información que la escuela decide compartir.",
     "Parents need a school invitation before any child information becomes available.": "Los responsables necesitan una invitación escolar para acceder a la información del menor.",

@@ -96,7 +96,7 @@ const nextConfig: NextConfig = {
         "/invite/:path*", "/auth/:path*", "/api/:path*",
         "/login/:path*", "/signup/:path*", "/forgot-password/:path*",
         "/reset-password/:path*", "/onboarding/:path*",
-        "/templates/:path*", "/learning-plans/:path*", "/parent-access/:path*", "/parent/:path*",
+        "/templates/:path*", "/learning-plans/:path*", "/parent-access/:path*", "/parent/:path*", "/feedback/:path*",
       ].map((source) => ({ source, headers: privateResponseHeaders })),
     ];
   },
