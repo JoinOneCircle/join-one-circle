@@ -2,6 +2,16 @@
 
 Nova plataforma SEND, construída de forma independente do Little Steps.
 
+## Admissão aberta de escolas no piloto — 30/10/2026
+
+A pedido da responsável pelo projeto, escolas do piloto entram sem aprovação manual. A migration **0028** instala uma chave administrativa inicialmente desligada; o operador deve habilitar `pilot_admission_settings.school_enrolment_open` para ativar a política. A aplicação chama uma função sem parâmetros que ativa somente as organizações escolares pendentes nas quais a própria conta já tem vínculo administrativo ativo e e-mail confirmado. Não cria vínculos com outras escolas, não libera fichas de terceiros, não converte famílias/profissionais/autoridades locais e não reativa organizações ou membros suspensos. Cada ativação fica na auditoria. Fechar a chave impede novas admissões automáticas, sem revogar escolas já ativas.
+
+O cadastro e a LP consultam a mesma chave. No modo aberto, o botão abre o painel escolar e explica o isolamento e o uso de dados fictícios nos testes. Quando a verificação manual estiver em uso, o aviso apresenta o prazo aprovado de **até 2 dias úteis** e o contato **hello@joinonecircle.com**. Suspensão é apresentada como suspensão, sem promessa de reativação automática. Convites e seleções individuais dos responsáveis continuam obrigatórios.
+
+Testes em PostgreSQL local cobrem duas escolas independentes, idempotência, chave fechada/aberta, reexecução da migration sem redefinir a configuração, e-mail não confirmado, pais/usuários anônimos, bloqueio de alteração da chave e preservação de suspensões. A instalação da migration, por si só, não abre admissões.
+
+No Supabase `frhrwuoktohxrjbtdutm`, 0028 foi aplicada e a chave foi habilitada após confirmação explícita. `tests/pilot-admission-deployed-transaction.sql` aprovou 14 verificações no banco remoto, com rollback de todas as suas identidades e escolas fictícias. Não foi feita aprovação em lote: a escola pendente será ativada pela própria conta administrativa no próximo acesso pela aplicação atualizada. Os testes não substituem login/entrega de e-mail reais. Suíte local: 79 testes, 78 aprovados e uma integração remota opcional omitida; lint e compilação de produção aprovados.
+
 ## Página pública e entrada do piloto — 30/10/2026
 
 Landing page refeita com o fluxo escolar real, exploração de ficha/modelos/assinatura/acesso dos responsáveis, calendário, papéis e dúvidas frequentes em EN/PT/ES. A prévia do produto usa dados fictícios e é identificada como ilustração; não anuncia IA, cobrança, certificações ou módulos fora do piloto. Estilos isolados em CSS Modules, navegação compacta para celular e abas com teclado.

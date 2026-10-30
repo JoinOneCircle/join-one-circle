@@ -12,7 +12,7 @@ export type PilotTemplate = { id: string; school_id: string; definition: Templat
 export type PilotPlan = { id: string; child_id: string; school_id: string; title: string; template_snapshot: TemplateDefinition; profile_snapshot: PupilProfile; answers: Record<string, string>; status: "draft" | "signed" | "published"; revision: number; supersedes_id: string | null; signed_by: string | null; signer_name: string | null; signer_role: string | null; signed_at: string | null; signature?: SchoolSignature | null; content_hash: string | null; published_at: string | null; review_on: string | null; updated_at: string };
 export type PilotRecipient = { id: string; child_id: string; display_name: string; contact_name?: string; relationship?: string; recipient_label?: string; user_id: string | null; recipient_role: "parent" | "school_staff"; status: string; profile_fields: string[]; plan_ids: string[]; event_ids: string[]; expires_at?: string };
 export type PilotEvent = { id: string; child_id: string; title: string; description: string; starts_at: string; status: string; plan_id?: string | null };
-export type PilotData = { pupils: PilotPupil[]; templates: PilotTemplate[]; plans: PilotPlan[]; recipients: PilotRecipient[]; events: PilotEvent[]; school_name: string; school_verified?: boolean; error?: string };
+export type PilotData = { pupils: PilotPupil[]; templates: PilotTemplate[]; plans: PilotPlan[]; recipients: PilotRecipient[]; events: PilotEvent[]; school_name: string; school_verified?: boolean; school_access_status?: string; open_school_pilot?: boolean; error?: string };
 export const emptyProfile = (): PupilProfile => Object.fromEntries(pupilFields.map((key) => [key, ""])) as PupilProfile;
 
 export function validateProfile(input: unknown): PupilProfile {

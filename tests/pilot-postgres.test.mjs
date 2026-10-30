@@ -39,6 +39,8 @@ test("school → template → signed immutable version → scoped parent → rev
   await db.exec(readFileSync(new URL("0025_pilot_renew_invitation.sql", folder), "utf8"));
   await db.exec(readFileSync(new URL("0026_pilot_drawn_signature_and_tables.sql", folder), "utf8"));
   await db.exec(readFileSync(new URL("0027_pilot_review_plan_link.sql", folder), "utf8"));
+  await db.exec(readFileSync(new URL("0028_open_school_pilot.sql", folder), "utf8"));
+  assert.equal((await db.query("select pilot_school_enrolment_open() as value")).rows[0].value, false);
   const schoolUser = randomUUID(), parentUser = randomUUID(), secondParent = randomUUID(), stranger = randomUUID(), staffUser = randomUUID(), schoolId = randomUUID();
   for (const [id, email] of [[schoolUser, "school@example.test"], [parentUser, "parent@example.test"], [secondParent, "second@example.test"], [stranger, "stranger@example.test"], [staffUser, "staff@example.test"]]) {
     await db.query("insert into auth.users(id,email,email_confirmed_at,raw_user_meta_data) values($1,$2,now(),$3)", [id, email, JSON.stringify({ display_name: email.split("@")[0] })]);
@@ -183,4 +185,54 @@ test("school → template → signed immutable version → scoped parent → rev
   // The exact SQL used against a deployed database must pass locally first.
   const deployedChecks = await db.exec(readFileSync(new URL("./pilot-deployed-transaction.sql", import.meta.url), "utf8"));
   assert.match(deployedChecks.at(-1).rows[0].qa_result, /PASS: 33/);
+
+  // Open school testing is self-service, never a global pupil grant.
+  const pendingA = await scalar(stranger, "select create_platform_organisation('QA school A','school','senco') as value");
+  const pendingB = await scalar(secondParent, "select create_platform_organisation('QA school B','school','senco') as value");
+  assert.equal(await scalar(stranger, "select pilot_activate_school_access() as value"), 0);
+  assert.equal(await scalar(stranger, "select pilot_school_id() as value"), null);
+  await assert.rejects(as(stranger, "update pilot_admission_settings set school_enrolment_open=true"), /permission/i);
+  await assert.rejects(as(stranger, "select * from pilot_admission_settings"), /permission/i);
+  await db.exec("set role anon");
+  assert.equal((await db.query("select pilot_school_enrolment_open() as value")).rows[0].value, false);
+  await assert.rejects(db.query("select pilot_activate_school_access()"), /permission/i);
+  await db.exec("reset role");
+
+  await db.exec("update pilot_admission_settings set school_enrolment_open=true,updated_at=now()");
+  await db.exec(readFileSync(new URL("0028_open_school_pilot.sql", folder), "utf8"));
+  assert.equal((await db.query("select pilot_school_enrolment_open() as value")).rows[0].value, true, "replaying the migration does not reset the operator's switch");
+  const unconfirmed = randomUUID();
+  await db.query("insert into auth.users(id,email) values($1,'qa-unconfirmed@example.test')", [unconfirmed]);
+  await assert.rejects(as(unconfirmed, "select pilot_activate_school_access()"), /confirm.*email/i);
+  assert.equal(await scalar(parentUser, "select pilot_activate_school_access() as value"), 0, "a parent cannot activate somebody else's school");
+  assert.equal(await scalar(stranger, "select pilot_activate_school_access() as value"), 1);
+  assert.equal(await scalar(stranger, "select pilot_activate_school_access() as value"), 0, "activation is idempotent");
+  assert.equal((await db.query("select count(*)::integer as value from audit_events where event_type='PILOT_SCHOOL_ACCESS_ACTIVATED' and entity_id=$1", [pendingA])).rows[0].value, 1);
+  assert.equal((await db.query("select verification_status from organisations where id=$1", [pendingB])).rows[0].verification_status, "pending_verification", "activation never targets another school");
+  assert.equal(await scalar(stranger, "select pilot_school_id() as value"), pendingA);
+  const isolatedA = await scalar(stranger, "select pilot_save_pupil(null,$1,0) as value", [JSON.stringify({ ...profile, preferred_name: "School A fictional child" })]);
+  assert.equal(await scalar(secondParent, "select pilot_activate_school_access() as value"), 1);
+  const isolatedB = await scalar(secondParent, "select pilot_save_pupil(null,$1,0) as value", [JSON.stringify({ ...profile, preferred_name: "School B fictional child" })]);
+  assert.equal((await as(stranger, "select * from pilot_pupils where child_id=$1", [isolatedB])).rows.length, 0);
+  assert.equal((await as(secondParent, "select * from pilot_pupils where child_id=$1", [isolatedA])).rows.length, 0);
+  assert.equal((await as(parentUser, "select * from pilot_pupils where child_id in ($1,$2)", [isolatedA, isolatedB])).rows.length, 0);
+
+  // A pause is not an invitation to self-reactivate during open enrolment.
+  await db.query("update organisations set verification_status='suspended' where id=$1", [pendingA]);
+  assert.equal(await scalar(stranger, "select pilot_activate_school_access() as value"), 0);
+  assert.equal(await scalar(stranger, "select pilot_school_id() as value"), null);
+  assert.equal((await as(stranger, "select * from pilot_pupils where child_id=$1", [isolatedA])).rows.length, 0);
+  assert.equal(await scalar(schoolUser, "select pilot_activate_school_access() as value"), 0, "the earlier suspended school remains blocked");
+  const suspendedMembership = await scalar(staffUser, "select create_platform_organisation('QA suspended member','school','senco') as value");
+  await db.query("update organisation_memberships set membership_status='suspended' where organisation_id=$1", [suspendedMembership]);
+  assert.equal(await scalar(staffUser, "select pilot_activate_school_access() as value"), 0);
+
+  await db.exec("update pilot_admission_settings set school_enrolment_open=false,updated_at=now()");
+  const afterClose = await scalar(stranger, "select create_platform_organisation('QA after pilot closes','school','senco') as value");
+  assert.equal(await scalar(stranger, "select pilot_activate_school_access() as value"), 0);
+  assert.equal((await db.query("select verification_status from organisations where id=$1", [afterClose])).rows[0].verification_status, "pending_verification");
+  assert.equal(await scalar(secondParent, "select pilot_school_id() as value"), pendingB, "closing new admissions does not revoke existing schools");
+  await db.exec("update pilot_admission_settings set school_enrolment_open=true");
+  const deployedAdmission = await db.exec(readFileSync(new URL("./pilot-admission-deployed-transaction.sql", import.meta.url), "utf8"));
+  assert.match(deployedAdmission.at(-1).rows[0].qa_result, /PASS: 14/);
 });

@@ -5,6 +5,7 @@ import { LanguageSelect } from "@/components/language-preference";
 import { PilotHome } from "@/components/pilot/pilot-home";
 import { SCHOOL_PARENT_PILOT } from "@/lib/pilot-config";
 import type { Metadata } from "next";
+import { pilotSchoolEnrolmentOpen } from "@/lib/pilot-admission";
 
 export const metadata: Metadata = SCHOOL_PARENT_PILOT ? {
   title: { absolute: "Join One Circle | School support, connected." },
@@ -24,8 +25,8 @@ const steps = [
   ["03", "Move forward with clarity", "See the record, documents, actions and progress together — with one clear next step."],
 ];
 
-export default function Home() {
-  if (SCHOOL_PARENT_PILOT) return <PilotHome />;
+export default async function Home() {
+  if (SCHOOL_PARENT_PILOT) return <PilotHome openSchoolPilot={await pilotSchoolEnrolmentOpen()}/>;
   return (
     <main className="marketing-shell">
       <header className="marketing-header">

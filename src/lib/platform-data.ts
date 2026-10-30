@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { isLocalDemoMode, isSupabaseConfigured } from "./supabase/config";
 import { createSupabaseServerClient } from "./supabase/server";
 import { DEMO_WORKSPACE_COOKIE, resolveDemoWorkspace } from "./demo-workspace";
+import { SCHOOL_PARENT_PILOT } from "./pilot-config";
 
 export type ChildSummary = { id: string; preferred_name: string; date_of_birth: string | null; can_open_record?: boolean };
 export type ViewerRole = "family" | "school" | "professional" | "local_authority";
@@ -32,6 +33,10 @@ export async function getPlatformContext() {
   const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase!.auth.getUser();
   if (!authData.user) redirect("/login");
+
+  // The operator-controlled pilot switch permits self-service activation
+  // of this caller's own pending school only. Suspensions and RLS remain.
+  if (SCHOOL_PARENT_PILOT) await supabase!.rpc("pilot_activate_school_access");
 
   const [{ data: profile }, { data: children }, { data: memberships }, { data: circleMemberships }] = await Promise.all([
     supabase!.from("profiles").select("display_name").eq("id", authData.user.id).maybeSingle(),

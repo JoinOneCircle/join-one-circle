@@ -6,7 +6,7 @@ import { parentContactForShare, parentInvitationRepresented } from "./pilot-reci
 export async function loadPilotSchool(): Promise<PilotData> {
   const db = await createSupabaseServerClient();
   if (!db) throw new Error("School connection unavailable");
-  const [pupils, templates, plans, invitations, shares, events, school, members] = await Promise.all([
+  const [pupils, templates, plans, invitations, shares, events, school, members, admission] = await Promise.all([
     db.from("pilot_pupils").select("child_id,school_id,profile,revision,updated_at").order("updated_at", { ascending: false }),
     db.from("pilot_templates").select("id,school_id,definition,revision,updated_at").order("updated_at", { ascending: false }),
     db.from("pilot_plans").select("*").order("updated_at", { ascending: false }),
@@ -14,6 +14,7 @@ export async function loadPilotSchool(): Promise<PilotData> {
     db.from("pilot_parent_shares").select("id,child_id,user_id,profile_fields,plan_ids,event_ids"),
     db.from("child_events").select("id,child_id,title,description,starts_at,status,plan_id").order("starts_at"),
     db.rpc("pilot_school_id"), db.rpc("list_visible_circle_members"),
+    db.rpc("pilot_school_enrolment_open"),
   ]);
   if (pupils.error || templates.error || plans.error || invitations.error || shares.error || school.error || members.error || events.error) throw new Error("Pilot setup required. Apply pending migrations 0022–0027 before using real records.");
   const ownMembers = (members.data ?? []) as { child_id: string; user_id: string; display_name: string; status: string; role: string }[];
@@ -28,5 +29,12 @@ export async function loadPilotSchool(): Promise<PilotData> {
     recipients.push({ ...invite, user_id: invite.accepted_by, display_name: invite.contact_name || member?.display_name || invite.recipient_label, status: invite.status === "pending" && Date.parse(invite.expires_at) < Date.now() ? "expired" : member?.status ?? invite.status });
   }
   const organisation = school.data ? await db.from("organisations").select("name").eq("id", school.data).maybeSingle() : null;
-  return { school_verified: Boolean(school.data), pupils: pupils.data ?? [], templates: templates.data ?? [], plans: plans.data ?? [], recipients, events: (events.data ?? []).filter((event) => (pupils.data ?? []).some((pupil) => pupil.child_id === event.child_id)), school_name: organisation?.data?.name ?? "School" } as PilotData;
+  let accessStatus = school.data ? "active" : "pending_verification";
+  if (!school.data) {
+    // This table's RLS exposes only the caller's own memberships.
+    const own = await db.from("organisation_memberships").select("membership_status,organisations(organisation_type,verification_status)").in("role", ["senco", "school_staff", "organisation_admin"]);
+    const schools = (own.data ?? []).map(m => ({ status: m.membership_status, organisation: m.organisations as unknown as { organisation_type: string; verification_status: string } | null })).filter(m => m.organisation?.organisation_type === "school");
+    if (schools.length && !schools.some(m => m.status === "active" && m.organisation?.verification_status === "pending_verification")) accessStatus = "suspended";
+  }
+  return { school_verified: Boolean(school.data), school_access_status: accessStatus, open_school_pilot: !admission.error && admission.data === true, pupils: pupils.data ?? [], templates: templates.data ?? [], plans: plans.data ?? [], recipients, events: (events.data ?? []).filter((event) => (pupils.data ?? []).some((pupil) => pupil.child_id === event.child_id)), school_name: organisation?.data?.name ?? "School" } as PilotData;
 }

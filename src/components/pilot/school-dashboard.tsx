@@ -13,7 +13,7 @@ import { PreviewNote, SchoolVerificationNotice, StatusBadge } from "./pilot-ui";
 export function SchoolPilotDashboard({ demo }: { demo: boolean }) {
   const { data, error, reload } = usePilot(demo); const { l } = usePilotLanguage();
   const today = schoolDateKey(new Date());
-  if (data?.school_verified === false) return <SchoolVerificationNotice reload={() => void reload()}/>;
+  if (data?.school_verified === false) return <SchoolVerificationNotice status={data.school_access_status} openSchoolPilot={data.open_school_pilot} reload={() => void reload()}/>;
   if (!data) return <section className="soft-card" data-no-translate>{error ? <><p role="alert">{error}</p><button className="quiet-button" onClick={() => void reload()}>{l("Try again", "Tentar novamente", "Intentar de nuevo")}</button></> : <p role="status">{l("Loading school records…", "Carregando registros da escola…", "Cargando registros escolares…")}</p>}</section>;
   const reminders: DashboardReminder[] = data.events.filter(e => e.status === "scheduled").map(e => ({ id: e.id, title: e.title === "Plan review" ? l("Document review", "Revisão de documento", "Revisión de documento") : e.title, childName: data.pupils.find(p => p.child_id === e.child_id)?.profile.preferred_name ?? "", at: e.starts_at, href: pilotReviewLink(e, data.plans)?.href ?? `/calendar?child=${encodeURIComponent(e.child_id)}#event-${e.id}`, kind: "event" }));
   const nextSteps = schoolNextActions(data);

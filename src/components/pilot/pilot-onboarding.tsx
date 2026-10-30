@@ -9,8 +9,9 @@ import { DEMO_WORKSPACE_COOKIE } from "@/lib/demo-workspace";
 import { pilotSignupRole } from "@/lib/signup-role";
 import { usePilotLanguage } from "./pilot-language";
 import styles from "./pilot-onboarding.module.css";
+import { VerificationContact } from "./verification-contact";
 
-export function PilotOnboardingIntro({ initialRole }: { initialRole?: string }) {
+export function PilotOnboardingIntro({ initialRole, openSchoolPilot = false }: { initialRole?: string; openSchoolPilot?: boolean }) {
   const { l } = usePilotLanguage();
   const knownRole = pilotSignupRole(initialRole);
   return <div className="onboarding-copy" data-no-translate>
@@ -18,17 +19,17 @@ export function PilotOnboardingIntro({ initialRole }: { initialRole?: string }) 
     <h1>{l("A simpler start. The right access.", "Um começo simples. O acesso certo.", "Un comienzo sencillo. El acceso adecuado.")}</h1>
     <p>{l("The school creates the record and documents. Parents can read only the information selected by the school.", "A escola cria a ficha e os documentos. Os responsáveis leem apenas as informações selecionadas pela escola.", "La escuela crea la ficha y los documentos. Los responsables leen solo la información seleccionada por la escuela.")}</p>
     <ol><li className="active"><b><AppIcon name={knownRole ? "check" : "account"} size={17}/></b><span><strong>{knownRole ? l("Account created", "Conta criada", "Cuenta creada") : l("Complete your account", "Complete sua conta", "Complete su cuenta")}</strong><small>{l("Your own sign-in, no automatic access", "Seu login, sem acesso automático às fichas", "Su inicio de sesión, sin acceso automático a fichas")}</small></span></li>
-      <li><b>2</b><span><strong>{l("Connect securely", "Conecte-se com segurança", "Conéctese con seguridad")}</strong><small>{l("School verification or a personal invitation", "Verificação da escola ou convite individual", "Verificación escolar o invitación personal")}</small></span></li>
+      <li><b>2</b><span><strong>{l("Connect securely", "Conecte-se com segurança", "Conéctese con seguridad")}</strong><small>{openSchoolPilot ? l("School setup or a parent's invitation", "Cadastro da escola ou convite do responsável", "Registro escolar o invitación del responsable") : l("School verification or a personal invitation", "Verificação da escola ou convite individual", "Verificación escolar o invitación personal")}</small></span></li>
       <li><b>3</b><span><strong>{l("Open your workspace", "Abra seu painel", "Abra su panel")}</strong><small>{l("Only the records shared with you", "Somente as fichas autorizadas para você", "Solo las fichas autorizadas para usted")}</small></span></li></ol>
   </div>;
 }
 
-function SchoolSubmit({ demo }: { demo: boolean }) {
+function SchoolSubmit({ demo, openSchoolPilot }: { demo: boolean; openSchoolPilot: boolean }) {
   const { pending } = useFormStatus(); const { l } = usePilotLanguage();
-  return <button className="button" type="submit" disabled={pending}>{pending ? l("Saving request…", "Salvando solicitação…", "Guardando solicitud…") : demo ? l("Open local school preview", "Abrir prévia local da escola", "Abrir vista previa local") : l("Request school access", "Solicitar acesso da escola", "Solicitar acceso escolar")}<AppIcon name="chevron-right" size={18}/></button>;
+  return <button className="button" type="submit" disabled={pending}>{pending ? l("Setting up your school…", "Preparando sua escola…", "Preparando su escuela…") : demo ? l("Open local school preview", "Abrir prévia local da escola", "Abrir vista previa local") : openSchoolPilot ? l("Open school workspace", "Abrir painel da escola", "Abrir panel escolar") : l("Request school access", "Solicitar acesso da escola", "Solicitar acceso escolar")}<AppIcon name="chevron-right" size={18}/></button>;
 }
 
-export function PilotOnboarding({ demo, initialRole, error }: { demo: boolean; initialRole?: string; error?: string }) {
+export function PilotOnboarding({ demo, initialRole, error, openSchoolPilot = false }: { demo: boolean; initialRole?: string; error?: string; openSchoolPilot?: boolean }) {
   const { l } = usePilotLanguage();
   const [role, setRole] = useState(pilotSignupRole(initialRole));
   const [choosing, setChoosing] = useState(!pilotSignupRole(initialRole));
@@ -46,8 +47,9 @@ export function PilotOnboarding({ demo, initialRole, error }: { demo: boolean; i
     {!choosing && role === "school" && <form className="auth-form" action={completeOrganisationOnboarding}>
       <input type="hidden" name="role" value="school"/>
       <label className="field">{l("School name", "Nome da escola", "Nombre de la escuela")}<input required name="organisation_name" maxLength={160} autoComplete="organization" value={schoolName} onChange={(event) => setSchoolName(event.target.value)} placeholder={l("e.g. Greenfield Primary School", "Ex.: Escola Greenfield", "Ej.: Escuela Greenfield")}/></label>
-      <div className={styles.notice}><AppIcon name="lock" size={21}/><div><strong>{l("What happens next?", "O que acontece depois?", "¿Qué ocurre después?")}</strong><p>{l("Your request goes to the platform administrator for verification. Child records stay locked until the school and its authorised contact are checked. Creating this account does not grant access to existing records.", "Sua solicitação vai para o administrador da plataforma verificar a escola e o contato autorizado. Até a aprovação, as fichas ficam bloqueadas. Criar esta conta não libera fichas já existentes.", "Su solicitud llega al administrador para verificar la escuela y el contacto autorizado. Hasta la aprobación, las fichas quedan bloqueadas. Crear esta cuenta no da acceso a fichas existentes.")}</p></div></div>
-      <SchoolSubmit demo={demo}/>
+      <div className={styles.notice}><AppIcon name={openSchoolPilot ? "check" : "lock"} size={21}/><div><strong>{openSchoolPilot ? l("Ready to test", "Pronto para testar", "Listo para probar") : l("What happens next?", "O que acontece depois?", "¿Qué ocurre después?")}</strong><p>{openSchoolPilot ? l("Schools can start the pilot without manual approval. Your workspace is separate from other schools. Use fictional data while testing; parents still need an individual invitation.", "As escolas podem começar o piloto sem aprovação manual. Seu espaço é separado das outras escolas. Use dados fictícios nos testes; responsáveis continuam precisando de um convite individual.", "Las escuelas pueden empezar el piloto sin aprobación manual. Su espacio está separado de otras escuelas. Use datos ficticios en las pruebas; los responsables siguen necesitando una invitación individual.") : l("We will check the school and its authorised contact before opening the workspace. No child records are shared automatically.", "Vamos conferir a escola e o contato autorizado antes de abrir o painel. Nenhuma ficha de criança é compartilhada automaticamente.", "Comprobaremos la escuela y el contacto autorizado antes de abrir el panel. Ninguna ficha se comparte automáticamente.")}</p></div></div>
+      <VerificationContact showDeadline={!openSchoolPilot}/>
+      <SchoolSubmit demo={demo} openSchoolPilot={openSchoolPilot}/>
     </form>}
     {!choosing && role === "family" && <div className={styles.parentSteps}><p>{l("No need to enter your child's details again. The school connects your account to the correct record through your invitation.", "Você não precisa cadastrar os dados da criança novamente. A escola conecta sua conta à ficha certa pelo convite.", "No necesita registrar de nuevo los datos del menor. La escuela conecta su cuenta con la ficha correcta mediante la invitación.")}</p>
       <ol>{[l("Find the personal invitation link shared by your school.", "Abra o link individual de convite compartilhado pela escola.", "Abra el enlace personal de invitación compartido por la escuela."), l("Use this account only if its email matches the invited email.", "Use esta conta apenas se o e-mail for o mesmo que a escola convidou.", "Use esta cuenta solo si su correo coincide con el invitado."), l("Accept the invitation to read what the school selected for you.", "Aceite o convite para ler o que a escola selecionou para você.", "Acepte la invitación para leer lo seleccionado por la escuela.")].map(step => <li key={step}>{step}</li>)}</ol>

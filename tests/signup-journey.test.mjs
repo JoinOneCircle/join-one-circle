@@ -9,6 +9,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { pilotSignupRole, signupRoleForDestination } from "../src/lib/signup-role.ts";
 import { translateUi } from "../src/lib/ui-translations.ts";
+import { JOC_SUPPORT_EMAIL, SCHOOL_VERIFICATION_BUSINESS_DAYS } from "../src/lib/support-contact.ts";
 
 const require = createRequire(import.meta.url);
 // Exercise the real component's initial render without granting any live access.
@@ -26,15 +27,25 @@ function compile(relative, mocks) {
 }
 
 function onboarding(language = "en") {
-  return compile("src/components/pilot/pilot-onboarding.tsx", {
+  const languageMock = { usePilotLanguage: () => ({ l: (...copy) => copy[language === "pt" ? 1 : language === "es" ? 2 : 0] }) };
+  const { VerificationContact } = compile("src/components/pilot/verification-contact.tsx", {
+    "@/components/app-icon": { AppIcon: () => null },
+    "@/lib/support-contact": { JOC_SUPPORT_EMAIL, SCHOOL_VERIFICATION_BUSINESS_DAYS },
+    "./pilot-language": languageMock,
+  });
+  const notice = compile("src/components/pilot/pilot-ui.tsx", {
+    "@/components/app-icon": { AppIcon: () => null }, "./pilot-language": languageMock, "./verification-contact": { VerificationContact },
+  });
+  return { ...notice, ...compile("src/components/pilot/pilot-onboarding.tsx", {
     "next/link": { __esModule: true, default: ({ children, ...props }) => React.createElement("a", props, children) },
     "next/navigation": { useRouter: () => ({ push() {}, refresh() {} }) },
     "@/components/app-icon": { AppIcon: () => null },
     "@/app/onboarding/actions": { completeOrganisationOnboarding() {} },
     "@/lib/demo-workspace": { DEMO_WORKSPACE_COOKIE: "test" },
     "@/lib/signup-role": { pilotSignupRole },
-    "./pilot-language": { usePilotLanguage: () => ({ l: (...copy) => copy[language === "pt" ? 1 : language === "es" ? 2 : 0] }) },
-  });
+    "./pilot-language": languageMock,
+    "./verification-contact": { VerificationContact },
+  }) };
 }
 
 test("signup role preferences accept only pilot types and invitations always retain family context", () => {
@@ -113,4 +124,29 @@ test("landing page separates real pilot functions from examples and has no inven
 test("the signup intro and role explanation are translated in both non-English languages", () => {
   const copy = ["School and family, connected.", "The school manages the record. Parents read only the information the school chooses to share.", "Parents need a school invitation before any child information becomes available.", "This gives you the right first step after confirmation. Access to children is never automatic."];
   for (const language of ["pt", "es"]) for (const text of copy) assert.notEqual(translateUi(language,text),text);
+});
+
+test("open pilot onboarding has immediate school entry and support, not an approval promise", () => {
+  const { PilotOnboarding } = onboarding("pt");
+  const open = renderToStaticMarkup(React.createElement(PilotOnboarding, { initialRole: "school", demo: false, openSchoolPilot: true }));
+  assert.match(open, /Abrir painel da escola/);
+  assert.match(open, /sem aprovação manual/);
+  assert.match(open, /mailto:hello@joinonecircle.com/);
+  assert.doesNotMatch(open, /dias úteis|Solicitar acesso|prazo passou/);
+  const closed = renderToStaticMarkup(React.createElement(PilotOnboarding, { initialRole: "school", demo: false, openSchoolPilot: false }));
+  assert.match(closed, /até 2 dias úteis/);
+  assert.match(closed, /mailto:hello@joinonecircle.com/);
+  assert.match(closed, /Solicitar acesso da escola/);
+});
+
+test("verification fallback shows the confirmed deadline/contact, while a suspension never promises automatic reopening", () => {
+  for (const language of ["en", "pt", "es"]) {
+    const { SchoolVerificationNotice } = onboarding(language);
+    const pending = renderToStaticMarkup(React.createElement(SchoolVerificationNotice));
+    assert.match(pending, /mailto:hello@joinonecircle.com/);
+    assert.match(pending, /(?:2 working days|2 dias úteis|2 días laborables)/);
+    const paused = renderToStaticMarkup(React.createElement(SchoolVerificationNotice, { status: "suspended", openSchoolPilot: true }));
+    assert.match(paused, /mailto:hello@joinonecircle.com/);
+    assert.doesNotMatch(paused, /2 working days|2 dias úteis|2 días laborables/);
+  }
 });
