@@ -4,12 +4,14 @@ import { AuthShell } from "@/components/auth-shell";
 import { PasswordField } from "@/components/password-field";
 import { signUp } from "../auth/actions";
 import { safeInternalPath } from "@/lib/security/redirect";
+import { signupRoleForDestination } from "@/lib/signup-role";
 
 export const metadata: Metadata = { title: "Create account" };
 
-export default async function SignUpPage({ searchParams }: { searchParams: Promise<{ error?: string; next?: string }> }) {
-  const { error, next } = await searchParams;
+export default async function SignUpPage({ searchParams }: { searchParams: Promise<{ error?: string; next?: string; role?: string }> }) {
+  const { error, next, role } = await searchParams;
   const destination = safeInternalPath(next, "/onboarding");
+  const selectedRole = signupRoleForDestination(destination, role);
   return <AuthShell title="School and family, connected." copy="The school manages the record. Parents read only the information the school chooses to share.">
     <h2>Create your account</h2><p>Parents need a school invitation before any child information becomes available.</p>
     {error && <div className="form-alert" role="alert">{error}</div>}
@@ -17,7 +19,7 @@ export default async function SignUpPage({ searchParams }: { searchParams: Promi
       <input type="hidden" name="next" value={safeInternalPath(next, "/onboarding")} />
       <label className="field">Your name<input name="name" autoComplete="name" required placeholder="Your full name" maxLength={120} /></label>
       {destination.startsWith("/invite/") ? <input type="hidden" name="intended_role" value="family"/> : <label className="field">How will you use Join One Circle?
-        <select name="intended_role" required defaultValue="">
+        <select name="intended_role" required defaultValue={selectedRole ?? ""}>
           <option value="" disabled>Choose your role</option>
           <option value="family">Family or carer</option>
           <option value="school">School or SENCO</option>

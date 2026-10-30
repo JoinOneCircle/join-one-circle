@@ -4,6 +4,12 @@ import { BrandLogo } from "@/components/brand-logo";
 import { LanguageSelect } from "@/components/language-preference";
 import { PilotHome } from "@/components/pilot/pilot-home";
 import { SCHOOL_PARENT_PILOT } from "@/lib/pilot-config";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = SCHOOL_PARENT_PILOT ? {
+  title: { absolute: "Join One Circle | School support, connected." },
+  description: "Child records, reusable templates, signed learning plans and individual parent access. A school-led space to organise support around each child.",
+} : {};
 
 const roles = [
   ["Families", "Tell your story once and keep every next step visible."],

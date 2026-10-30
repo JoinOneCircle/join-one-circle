@@ -36,7 +36,7 @@ export async function completeOrganisationOnboarding(formData: FormData) {
   const requestedRole = value(formData, "role");
   const role = requestedRole === "school" || requestedRole === "professional" || requestedRole === "local_authority" ? requestedRole : "family";
   const organisationName = value(formData, "organisation_name");
-  if (!organisationName) redirect(`/onboarding?error=${encodeURIComponent("Enter the organisation name.")}`);
+  if (!organisationName || organisationName.length > 160) redirect(`/onboarding?role=${role}&error=${encodeURIComponent("Enter the organisation name (up to 160 characters).")}`);
 
   if (!isSupabaseConfigured) {
     if (!isLocalDemoMode) redirect("/?error=configuration-required");
@@ -53,7 +53,7 @@ export async function completeOrganisationOnboarding(formData: FormData) {
     p_type: role === "professional" ? "professional_practice" : role,
     p_role: role === "school" ? "senco" : role,
   });
-  if (error) redirect(`/onboarding?error=${encodeURIComponent(error.message)}`);
+  if (error) redirect(`/onboarding?role=${role}&error=${encodeURIComponent(error.message)}`);
   redirect("/dashboard");
 }
 

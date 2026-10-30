@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { isLocalDemoMode, isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { configuredSiteOrigin, safeInternalPath } from "@/lib/security/redirect";
+import { pilotSignupRole, signupRoleForDestination } from "@/lib/signup-role";
 
 function text(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
@@ -35,20 +36,20 @@ export async function signIn(formData: FormData) {
 export async function signUp(formData: FormData) {
   const requestedNext = text(formData, "next");
   const next = requestedNext.startsWith("/invite/") ? safeInternalPath(requestedNext, "/onboarding") : "/onboarding";
-  const signupPath = `/signup?next=${encodeURIComponent(next)}`;
+  const intendedRole = signupRoleForDestination(next, text(formData, "intended_role"));
+  const signupPath = `/signup?next=${encodeURIComponent(next)}${intendedRole ? `&role=${intendedRole}` : ""}`;
   const name = text(formData, "name");
   const email = text(formData, "email");
   const password = text(formData, "password");
   const confirmPassword = text(formData, "confirm_password");
-  const intendedRole = text(formData, "intended_role");
   if (name.length < 2 || name.length > 120) authRedirect(signupPath, "error", "Enter your full name.");
   if (!/^\S+@\S+\.\S+$/.test(email)) authRedirect(signupPath, "error", "Enter a valid email address.");
   if (password.length < 8) authRedirect(signupPath, "error", "Use at least 8 characters for your password.");
   if (password !== confirmPassword) authRedirect(signupPath, "error", "The passwords do not match.");
-  if (!["family", "school"].includes(intendedRole)) authRedirect(signupPath, "error", "Choose how you will use Join One Circle.");
+  if (!pilotSignupRole(intendedRole)) authRedirect(signupPath, "error", "Choose how you will use Join One Circle.");
   if (formData.get("privacy_consent") !== "on") authRedirect(signupPath, "error", "Accept the privacy notice to continue.");
   if (!isSupabaseConfigured) {
-    if (isLocalDemoMode) redirect("/onboarding?demo=1");
+    if (isLocalDemoMode) redirect(`/onboarding?demo=1&role=${intendedRole}`);
     authRedirect("/signup", "error", "The secure service is not configured yet.");
   }
   const supabase = await createSupabaseServerClient();

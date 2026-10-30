@@ -2,6 +2,14 @@
 
 Nova plataforma SEND, construída de forma independente do Little Steps.
 
+## Página pública e entrada do piloto — 30/10/2026
+
+Landing page refeita com o fluxo escolar real, exploração de ficha/modelos/assinatura/acesso dos responsáveis, calendário, papéis e dúvidas frequentes em EN/PT/ES. A prévia do produto usa dados fictícios e é identificada como ilustração; não anuncia IA, cobrança, certificações ou módulos fora do piloto. Estilos isolados em CSS Modules, navegação compacta para celular e abas com teclado.
+
+O perfil escolhido no cadastro é reutilizado na etapa seguinte. Escola vai direto ao nome da instituição; responsável recebe orientação sobre o convite vinculado ao próprio e-mail. A escolha reaparece apenas para contas antigas sem perfil ou por ação explícita em “Alterar perfil”. Erros de validação preservam o tipo de conta e a entrada escolar pela LP já sugere escola. Isso é preferência de navegação, não concessão de acesso: verificação da escola, convites e RLS permanecem obrigatórios. Não houve mudança de banco nem liberação de contas reais nesta revisão.
+
+Validação desta revisão: 77 testes locais (76 aprovados, uma integração remota opcional omitida), incluindo renderização das etapas e metadados de cadastro com serviços simulados. No navegador: abas, teclado, FAQ, idiomas, formulário de cadastro com escola pré-selecionada e layout desktop/celular. A etapa pós-cadastro também foi testada em prévia local isolada, sem Supabase, incluindo mudança opcional de perfil e preservação do nome escolar. Não equivale a homologar entrega de e-mail ou criar novos participantes reais.
+
 ## Publicação controlada do piloto — 27/10/2026
 
 Publicado na conta gratuita existente da Netlify em `https://joinonecircle.netlify.app`, com Supabase conectado e IA desativada. A primeira versão publicada desta rodada é o commit `d415b15` (deploy `6ae0f99ade851cc9227fde97`). O domínio próprio continua pendente de DNS/certificado; não foi comprado serviço nem alterado o DNS. O endereço de convite e o callback autorizados permanecem no HTTPS da Netlify.

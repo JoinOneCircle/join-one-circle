@@ -3,6 +3,10 @@ type Table = Record<string, string>;
 type SupportedLanguage = "en" | "pt" | "es";
 export const uiTranslations: Record<Exclude<SupportedLanguage, "en">, Table> = {
   pt: {
+    "School and family, connected.": "Escola e família, conectadas.",
+    "The school manages the record. Parents read only the information the school chooses to share.": "A escola gerencia a ficha. Os responsáveis leem apenas as informações que a escola escolhe compartilhar.",
+    "Parents need a school invitation before any child information becomes available.": "Os responsáveis precisam de um convite da escola para acessar informações da criança.",
+    "This gives you the right first step after confirmation. Access to children is never automatic.": "Após confirmar sua conta, você segue para a etapa certa do seu perfil. O acesso às fichas nunca é automático.",
     "The record administrator controls exactly what is shared. Nothing else becomes visible when you accept.": "A escola escolhe exatamente o que compartilhar. Ao aceitar, você só verá as informações selecionadas para você.",
     "Back to website": "Voltar ao site", "Your full name": "Seu nome completo",
     "Language": "Idioma", "Get started": "Começar", "ONE CHILD · ONE RECORD · ONE CONNECTED CIRCLE": "UMA CRIANÇA · UM REGISTRO · UM CÍRCULO CONECTADO",
@@ -52,6 +56,10 @@ export const uiTranslations: Record<Exclude<SupportedLanguage, "en">, Table> = {
     "Manage your details, language and account protection.": "Gerencie seus dados, idioma e proteção da conta.", "Your profile": "Seu perfil", "Name": "Nome", "Edit": "Editar", "Save": "Salvar", "Cancel": "Cancelar", "Tool language": "Idioma da ferramenta", "Managed securely by your account": "Gerenciada com segurança pela sua conta", "Change": "Alterar", "Multi-factor authentication": "Autenticação de dois fatores", "Required before live launch": "Obrigatória antes do lançamento", "Enabled through the connected Supabase account.": "Ativada pela conta Supabase conectada.", "End your secure session on this device.": "Encerre sua sessão segura neste dispositivo.",
   },
   es: {
+    "School and family, connected.": "Escuela y familia, conectadas.",
+    "The school manages the record. Parents read only the information the school chooses to share.": "La escuela gestiona la ficha. Los responsables leen solo la información que la escuela decide compartir.",
+    "Parents need a school invitation before any child information becomes available.": "Los responsables necesitan una invitación escolar para acceder a la información del menor.",
+    "This gives you the right first step after confirmation. Access to children is never automatic.": "Tras confirmar su cuenta, continuará con el paso adecuado para su perfil. El acceso a las fichas nunca es automático.",
     "The record administrator controls exactly what is shared. Nothing else becomes visible when you accept.": "La escuela elige exactamente qué compartir. Al aceptar, solo verá la información seleccionada para usted.",
     "Back to website": "Volver al sitio", "Your full name": "Su nombre completo",
     "Language": "Idioma", "Get started": "Comenzar", "ONE CHILD · ONE RECORD · ONE CONNECTED CIRCLE": "UN MENOR · UN REGISTRO · UN CÍRCULO CONECTADO", "Everyone around a child, moving forward together.": "Todos alrededor del menor, avanzando juntos.", "Join One Circle gives families, schools, professionals and Local Authorities one secure place to understand needs, coordinate support and keep progress visible.": "Join One Circle ofrece a familias, escuelas, profesionales y autoridades locales un lugar seguro para comprender necesidades, coordinar apoyo y seguir el progreso.", "Create your circle": "Crear tu círculo", "See how it works": "Ver cómo funciona", "Authorised access": "Acceso autorizado", "Clear audit history": "Historial de auditoría claro", "Human-reviewed AI": "IA revisada por personas",
